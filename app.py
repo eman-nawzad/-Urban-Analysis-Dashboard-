@@ -2,6 +2,7 @@ import folium
 import geopandas as gpd
 import streamlit as st
 from folium import GeoJson
+from streamlit_folium import folium_static  # Add this import
 
 # Load GeoJSON files from the data folder
 LCZ = gpd.read_file('data/LCZ.GeoJson.geojson')
@@ -81,7 +82,7 @@ st.markdown('This dashboard visualizes various urban features including LCZ, Lan
 
 # Display the folium map in Streamlit
 st.markdown("### Interactive Map")
-folium_static(m)
+folium_static(m)  # This function will display the map in Streamlit
 
 
 
