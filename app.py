@@ -2,6 +2,10 @@ import folium
 import geopandas as gpd
 import streamlit as st
 
+# Define latitude and longitude for the map center (e.g., Erbil or any location of your choice)
+latitude = 36.1910  # Example: Erbil latitude
+longitude = 43.9983  # Example: Erbil longitude
+
 # Load GeoJSON files
 land_use = gpd.read_file('data/Land_Use.geojson')
 lcz = gpd.read_file('data/LCZ.GeoJson.geojson')
@@ -81,5 +85,6 @@ st.title("Urban Analysis Dashboard")
 st.markdown("### Interactive map with different urban analysis layers.")
 st.markdown("Use the layer control to toggle between Land Use, Local Climate Zones, Vegetation Distribution, Roads, and Urban Density.")
 st.components.v1.html(m._repr_html_(), width=800, height=600)
+
 
 
