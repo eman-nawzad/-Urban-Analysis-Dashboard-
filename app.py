@@ -19,7 +19,7 @@ def load_data(file_path, layer_name):
         return None
 
 # Load datasets
-ndvi_data = load_data('data/NDVI-DS.geojson', 'NDVI')
+ndvi_data = load_data('data/NDVIt.geojson', 'NDVI')
 lcz_data = load_data('data/LCZ.GeoJson.geojson', 'LCZ')
 urban_density_data = load_data('data/UrbanDensity.geojson', 'Urban Density')
 road_data = load_data('data/Roads.geojson', 'Roads')
