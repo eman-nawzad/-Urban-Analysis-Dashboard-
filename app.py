@@ -21,7 +21,7 @@ data_files = {
 st.sidebar.title("Dashboard Controls")
 
 # Filtering options for Roads
-road_types = ["All", "Main Roads", "Secondary Roads"]
+road_types = ["All", "Primary", "Secondary"]  # Replace with actual categories in your data
 selected_road_type = st.sidebar.selectbox("Filter Roads by Type:", road_types)
 
 # Filtering options for Urban Density
@@ -51,7 +51,7 @@ for name, path in data_files.items():
     
     # Apply specific filters
     if name == "Roads" and selected_road_type != "All":
-        gdf = filter_gdf(gdf, "road_type", selected_road_type)
+        gdf = filter_gdf(gdf, "highway", selected_road_type)  # Update with actual column name
     elif name == "Urban Density" and selected_density != "All":
         gdf = filter_gdf(gdf, "density_level", selected_density)
     elif name == "Vegetation Distribution (NDVI)" and selected_timeframe != "All Time":
@@ -97,6 +97,7 @@ st.sidebar.write(
     or recent vegetation data.
     """
 )
+
 
 
 
