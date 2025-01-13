@@ -1,17 +1,15 @@
 import streamlit as st
-import folium
-from folium import GeoJson
-from streamlit_folium import st_folium
-import json
+import matplotlib.pyplot as plt
+import geopandas as gpd
+from shapely.geometry import box
 
 # Load GeoJSON data
 @st.cache_data
 def load_geojson(file_path):
-    with open(file_path, 'r') as file:
-        return json.load(file)
+    return gpd.read_file(file_path)
 
 # Load all GeoJSON files
-ndvi_data = load_geojson('data/NDVIt.geojson')
+ndvi_data = load_geojson('data/NDVI-DS.geojson')
 lcz_data = load_geojson('data/LCZ.GeoJson.geojson')
 urban_density_data = load_geojson('data/UrbanDensity.geojson')
 road_data = load_geojson('data/Roads.geojson')
@@ -37,66 +35,42 @@ selected_filters = {}
 for layer in selected_layers:
     selected_filters[layer] = st.sidebar.multiselect(f"Select {layer} categories:", filters[layer], default=filters[layer])
 
-# Create a Folium map
-m = folium.Map(location=[36.2, 44.0], zoom_start=10)
+# Create a base map
+fig, ax = plt.subplots(figsize=(10, 10))
+world_bounds = box(-180, -90, 180, 90)
+world = gpd.GeoSeries([world_bounds]).set_crs(epsg=4326)
+world.boundary.plot(ax=ax, color='black')
 
 # Add layers based on user selection
 if "NDVI" in selected_layers:
-    filtered_ndvi = {
-        "type": "FeatureCollection",
-        "features": [f for f in ndvi_data["features"] if f["properties"]["category"] in selected_filters["NDVI"]]
-    }
-    GeoJson(filtered_ndvi, name="NDVI", style_function=lambda x: {
-        'color': 'green',
-        'weight': 2
-    }).add_to(m)
+    filtered_ndvi = ndvi_data[ndvi_data["category"].isin(selected_filters["NDVI"])]
+    filtered_ndvi.plot(ax=ax, color='green', label='NDVI')
 
 if "LCZ" in selected_layers:
-    filtered_lcz = {
-        "type": "FeatureCollection",
-        "features": [f for f in lcz_data["features"] if f["properties"]["category"] in selected_filters["LCZ"]]
-    }
-    GeoJson(filtered_lcz, name="LCZ", style_function=lambda x: {
-        'color': 'blue',
-        'weight': 2
-    }).add_to(m)
+    filtered_lcz = lcz_data[lcz_data["category"].isin(selected_filters["LCZ"])]
+    filtered_lcz.plot(ax=ax, color='blue', label='LCZ')
 
 if "Urban Density" in selected_layers:
-    filtered_density = {
-        "type": "FeatureCollection",
-        "features": [f for f in urban_density_data["features"] if f["properties"]["category"] in selected_filters["Urban Density"]]
-    }
-    GeoJson(filtered_density, name="Urban Density", style_function=lambda x: {
-        'color': 'purple',
-        'weight': 2
-    }).add_to(m)
+    filtered_density = urban_density_data[urban_density_data["category"].isin(selected_filters["Urban Density"])]
+    filtered_density.plot(ax=ax, color='purple', label='Urban Density')
 
 if "Roads" in selected_layers:
-    filtered_roads = {
-        "type": "FeatureCollection",
-        "features": [f for f in road_data["features"] if f["properties"]["highway"] in selected_filters["Roads"]]
-    }
-    GeoJson(filtered_roads, name="Roads", style_function=lambda x: {
-        'color': 'red',
-        'weight': 1
-    }).add_to(m)
+    filtered_roads = road_data[road_data["highway"].isin(selected_filters["Roads"])]
+    filtered_roads.plot(ax=ax, color='red', label='Roads')
 
 if "Land Cover" in selected_layers:
-    filtered_land_cover = {
-        "type": "FeatureCollection",
-        "features": [f for f in land_cover_data["features"] if f["properties"]["land_use"] in selected_filters["Land Cover"]]
-    }
-    GeoJson(filtered_land_cover, name="Land Cover", style_function=lambda x: {
-        'color': 'orange',
-        'weight': 2
-    }).add_to(m)
+    filtered_land_cover = land_cover_data[land_cover_data["land_use"].isin(selected_filters["Land Cover"])]
+    filtered_land_cover.plot(ax=ax, color='orange', label='Land Cover')
 
-# Add layer control
-folium.LayerControl().add_to(m)
+# Finalize map
+ax.legend()
+ax.set_title("Interactive Map")
+ax.set_xlabel("Longitude")
+ax.set_ylabel("Latitude")
 
 # Display the map in Streamlit
-st.title("Interactive Map with Filters")
-st_folium(m, width=700, height=500)
+st.pyplot(fig)
+
 
 
 
