@@ -3,15 +3,12 @@ import folium
 import geopandas as gpd
 from streamlit_folium import st_folium
 
-# Sidebar: Add options to select the timeframe
-st.sidebar.title("Select Timeframe")
+# Sidebar: Add options to select the layer
+st.sidebar.title("Select Layer")
 
-# Set the date range from 2018 to 2023
-start_date = '2018-01-01'
-end_date = '2023-12-31'
-
-# Display the selected date range in the sidebar
-st.sidebar.write(f"Data from: {start_date} to {end_date}")
+# Create a dropdown menu in the sidebar to select the layer
+layer_options = ['None', 'NDVI Data', 'Land Use Data', 'Roads Data', 'Urban Density Data']
+selected_layer = st.sidebar.selectbox('Choose a layer to display:', layer_options)
 
 # Load your GeoJSON data (NDVI, Land Use, Roads, Urban Density)
 ndvi_data_path = 'data/NDVIt.geojson'  # Path to your NDVI GeoJSON file
@@ -35,7 +32,7 @@ gdf_urban_density = gdf_urban_density.to_crs(epsg=4326)
 map_center = [gdf_ndvi.geometry.centroid.y.mean(), gdf_ndvi.geometry.centroid.x.mean()]
 m = folium.Map(location=map_center, zoom_start=10)
 
-# Create GeoJSON layers for each dataset with custom styling
+# Define the layers for each dataset
 ndvi_layer = folium.GeoJson(
     gdf_ndvi.to_json(),
     name="NDVI Data",
@@ -79,17 +76,22 @@ urban_density_layer = folium.GeoJson(
     }
 )
 
-# Add the layers to the map
-ndvi_layer.add_to(m)
-land_use_layer.add_to(m)
-roads_layer.add_to(m)
-urban_density_layer.add_to(m)
+# Add selected layer based on user's choice
+if selected_layer == 'NDVI Data':
+    ndvi_layer.add_to(m)
+elif selected_layer == 'Land Use Data':
+    land_use_layer.add_to(m)
+elif selected_layer == 'Roads Data':
+    roads_layer.add_to(m)
+elif selected_layer == 'Urban Density Data':
+    urban_density_layer.add_to(m)
 
-# Add a Layer Control to the map for toggling visibility of all layers
+# Add a Layer Control to the map for toggling visibility of the selected layer
 folium.LayerControl().add_to(m)
 
 # Display the map in Streamlit
 st_data = st_folium(m, width=900, height=600)
+
 
 
 
