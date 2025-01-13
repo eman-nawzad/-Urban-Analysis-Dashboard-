@@ -12,7 +12,7 @@ road_types = ['All', 'Primary', 'Secondary', 'Tertiary']
 selected_road_type = st.sidebar.selectbox('Select Road Type:', road_types)
 
 # Sidebar for selecting time period
-start_date = st.sidebar.date_input("Start Date", pd.to_datetime("2023-01-01"))
+start_date = st.sidebar.date_input("Start Date", pd.to_datetime("2018-01-01"))
 end_date = st.sidebar.date_input("End Date", pd.to_datetime("2023-12-31"))
 
 # Load GeoJSON data
@@ -106,6 +106,7 @@ folium.LayerControl().add_to(m)
 
 # Display the map in Streamlit
 st_folium(m, width=900, height=600)
+
 
 
 
