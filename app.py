@@ -27,10 +27,6 @@ selected_file = st.sidebar.selectbox(
 geojson_path = data_files[selected_file]
 gdf = gpd.read_file(geojson_path)
 
-# Display dataset summary
-st.sidebar.write(f"**Selected Dataset:** {selected_file}")
-st.sidebar.write(f"**Number of Features:** {len(gdf)}")
-
 # Display map
 st.subheader(f"Map View: {selected_file}")
 m = folium.Map(location=[gdf.geometry.centroid.y.mean(), gdf.geometry.centroid.x.mean()],
@@ -43,6 +39,7 @@ st.subheader(f"Data Table: {selected_file}")
 st.dataframe(gdf)
 
 st.write("Urban analysis is critical for understanding spatial patterns and planning sustainable cities.")
+
 
 
 
