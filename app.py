@@ -6,7 +6,7 @@ import geopandas as gpd
 # Load GeoJSON data
 @st.cache_data
 def load_data():
-    ndvi_data = gpd.read_file('data/NDVI-DS.geojson')
+    ndvi_data = gpd.read_file('data/NDVIt.geojson')
     lcz_data = gpd.read_file('data/LCZ.GeoJson.geojson')
     urban_density_data = gpd.read_file('data/UrbanDensity.geojson')
     road_data = gpd.read_file('data/Roads.geojson')
