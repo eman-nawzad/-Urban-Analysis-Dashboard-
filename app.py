@@ -12,33 +12,39 @@ st.title("Urban Analysis Dashboard")
 data_files = {
     "Local Climate Zones (LCZ)": "data/LCZ.GeoJson.geojson",
     "Land Use": "data/Land_Use.geojson",
-    "NDVI Dataset": "data/NDVI-DS.geojson",
+    "Vegetation Distribution (NDVI)": "data/NDVI-DS.geojson",
     "Roads": "data/Roads.geojson",
     "Urban Density": "data/UrbanDensity.geojson",
 }
 
-# Sidebar for selecting datasets
-selected_file = st.sidebar.selectbox(
-    "Select a dataset to view:",
-    list(data_files.keys())
+# Initialize Folium Map
+map_center = [35.0, 44.0]  # Adjust to your region of interest
+m = folium.Map(location=map_center, zoom_start=12, control_scale=True)
+
+# Add layers with toggles
+for name, path in data_files.items():
+    gdf = gpd.read_file(path)
+    layer = folium.GeoJson(
+        gdf,
+        name=name,
+        tooltip=folium.GeoJsonTooltip(fields=gdf.columns[:2], aliases=gdf.columns[:2])  # Adjust fields if needed
+    )
+    layer.add_to(m)
+
+# Add layer control to toggle layers
+folium.LayerControl().add_to(m)
+
+# Render the map in Streamlit
+st.subheader("Interactive Map with Layer Toggles")
+st_data = st_folium(m, width=900, height=600)
+
+st.write(
+    """
+    Use the interactive map above to toggle layers for land use, local climate zones, 
+    vegetation distribution, roads, and urban density.
+    """
 )
 
-# Load the selected GeoJSON file
-geojson_path = data_files[selected_file]
-gdf = gpd.read_file(geojson_path)
-
-# Display map
-st.subheader(f"Map View: {selected_file}")
-m = folium.Map(location=[gdf.geometry.centroid.y.mean(), gdf.geometry.centroid.x.mean()],
-               zoom_start=12, control_scale=True)
-folium.GeoJson(gdf).add_to(m)
-st_data = st_folium(m, width=700, height=500)
-
-# Display GeoJSON file data table
-st.subheader(f"Data Table: {selected_file}")
-st.dataframe(gdf)
-
-st.write("Urban analysis is critical for understanding spatial patterns and planning sustainable cities.")
 
 
 
