@@ -23,18 +23,19 @@ color_palettes = {
     "Urban Density": {'High': 'darkred', 'Low': 'lightred'}
 }
 
-# Add Land Use Layer
+# Add Land Use Layer without 'land_use_type'
 for idx, row in land_use.iterrows():
     folium.GeoJson(
         row['geometry'],
         name="Land Use",
         style_function=lambda feature: {
-            'fillColor': color_palettes["Land Use"].get(row['landuse_type'], 'gray'),  # Updated column name
+            'fillColor': 'green',  # You can use any color you want
             'color': 'black',
             'weight': 1,
             'fillOpacity': 0.6
         }
     ).add_to(m)
+
 
 # Add Local Climate Zones (LCZ) Layer
 for idx, row in lcz.iterrows():
