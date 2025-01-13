@@ -1,6 +1,6 @@
 streamlit
-matplotlib
+folium
+streamlit-folium
 geopandas
-shapely
 
 
