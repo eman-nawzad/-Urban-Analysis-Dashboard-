@@ -37,12 +37,30 @@ selected_layers = st.sidebar.multiselect("Select layers to display", layer_optio
 
 # Function to style layers based on custom colors
 def style_function(feature, layer_type):
-    return {
-        'fillColor': color_palettes[layer_type].get(feature['properties'][layer_type], 'gray'),
-        'color': 'black',
-        'weight': 1,
-        'fillOpacity': 0.7
-    }
+    try:
+        # Check if the layer type exists as a key in the feature properties
+        property_value = feature['properties'].get(layer_type, None)
+        if property_value:
+            return {
+                'fillColor': color_palettes[layer_type].get(property_value, 'gray'),
+                'color': 'black',
+                'weight': 1,
+                'fillOpacity': 0.7
+            }
+        else:
+            return {
+                'fillColor': 'gray',  # Default color if the property is not found
+                'color': 'black',
+                'weight': 1,
+                'fillOpacity': 0.7
+            }
+    except KeyError:
+        return {
+            'fillColor': 'gray',  # Default color for unknown properties
+            'color': 'black',
+            'weight': 1,
+            'fillOpacity': 0.7
+        }
 
 # Add selected layers to the map
 if "Land Use" in selected_layers:
