@@ -17,11 +17,12 @@ m = folium.Map(location=[39.5, 46.0], zoom_start=12)
 # Define custom colors for each layer
 color_palettes = {
     "Land Use": {'Residential': 'lightblue', 'Commercial': 'lightyellow', 'Industrial': 'lightgray'},
-    "Local Climate Zones (LCZ)": {'high-rise': 'red', 'low-rise': 'green', 'urban': 'purple'},
+    "Local Climate Zones (LCZ)": {'Compact High-Rise': 'blue', 'Open Low-Rise': 'orange', 'Industrial Zones': 'red'},
     "Vegetation (NDVI)": {'Dense Forest': 'darkgreen', 'Sparse Grass': 'lightgreen'},
     "Roads": {'Main Roads': 'blue', 'Secondary Roads': 'orange'},
     "Urban Density": {'High': 'darkred', 'Low': 'lightred'}
 }
+
 
 # Add Land Use Layer without 'land_use_type'
 for idx, row in land_use.iterrows():
@@ -37,18 +38,32 @@ for idx, row in land_use.iterrows():
     ).add_to(m)
 
 
-# Add Local Climate Zones (LCZ) Layer
+# Define a dictionary for the colors based on LCZ
+lcz_colors = {
+    "Compact High-Rise": "blue",  # Color for Compact High-Rise
+    "Open Low-Rise": "orange",    # Color for Open Low-Rise
+    "Industrial Zones": "red",    # Color for Industrial Zones
+    "Default": "gray"             # Default color if not found
+}
+
+# Add LCZ Layer with different colors based on LCZ type
 for idx, row in lcz.iterrows():
+    lcz_type = row['LCZ']  # Assuming 'LCZ' is the column containing the LCZ type
+
+    # Set color based on LCZ type
+    fill_color = lcz_colors.get(lcz_type, lcz_colors['Default'])
+
     folium.GeoJson(
         row['geometry'],
         name="LCZ",
-        style_function=lambda feature: {
-            'fillColor': color_palettes["Local Climate Zones (LCZ)"].get(row['lcz_type'], 'gray'),
+        style_function=lambda feature, color=fill_color: {
+            'fillColor': color,
             'color': 'black',
             'weight': 1,
             'fillOpacity': 0.6
         }
     ).add_to(m)
+
 
 # Add Vegetation (NDVI) Layer
 for idx, row in ndvi.iterrows():
