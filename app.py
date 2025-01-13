@@ -1,94 +1,103 @@
 import streamlit as st
 import folium
+from folium import GeoJson
 from streamlit_folium import st_folium
-import geopandas as gpd
+import json
 
 # Load GeoJSON data
 @st.cache_data
-def load_data():
-    try:
-        ndvi_data = gpd.read_file('data/NDVIt.geojson')
-        lcz_data = gpd.read_file('data/LCZ.GeoJson.geojson')
-        urban_density_data = gpd.read_file('data/UrbanDensity.geojson')
-        road_data = gpd.read_file('data/Roads.geojson')
-        land_cover_data = gpd.read_file('data/Land_Use.geojson')
-    except Exception as e:
-        st.error(f"Error loading data: {e}")
-        return None, None, None, None, None
+def load_geojson(file_path):
+    with open(file_path, 'r') as file:
+        return json.load(file)
 
-    return ndvi_data, lcz_data, urban_density_data, road_data, land_cover_data
+# Load all GeoJSON files
+ndvi_data = load_geojson('data/NDVIt.geojson')
+lcz_data = load_geojson('data/LCZ.GeoJson.geojson')
+urban_density_data = load_geojson('data/UrbanDensity.geojson')
+road_data = load_geojson('data/Roads.geojson')
+land_cover_data = load_geojson('data/Land_Use.geojson')
 
-# Load the data
-ndvi_data, lcz_data, urban_density_data, road_data, land_cover_data = load_data()
+# Sidebar configuration
+st.sidebar.header("Map Filters")
 
-# Debugging: Check the state of the data
-if ndvi_data is None:
-    st.error("NDVI data failed to load.")
-if lcz_data is None:
-    st.error("LCZ data failed to load.")
-if urban_density_data is None:
-    st.error("Urban Density data failed to load.")
-if road_data is None:
-    st.error("Road data failed to load.")
-if land_cover_data is None:
-    st.error("Land Cover data failed to load.")
+# Layer options
+layer_options = ["NDVI", "LCZ", "Urban Density", "Roads", "Land Cover"]
+selected_layers = st.sidebar.multiselect("Select layers to display:", layer_options, default=layer_options)
 
-# Stop execution if any dataset is None
-if any(data is None for data in [ndvi_data, lcz_data, urban_density_data, road_data, land_cover_data]):
-    st.stop()
+# Filter options for each layer
+filters = {
+    "NDVI": ["Dense Forest", "Sparse Grass"],
+    "LCZ": ["Compact High-Rise", "Open Low-Rise", "Industrial Zones"],
+    "Urban Density": ["High Density", "Medium Density", "Low Density", "Very Low Density"],
+    "Roads": ["Primary", "Motorway", "Trunk", "Secondary", "Main"],
+    "Land Cover": ["Urban"]
+}
 
-# Sidebar for layer selection
-st.sidebar.header("Layer Selection")
-selected_layers = st.sidebar.multiselect(
-    "Select layers to display on the map:",
-    ["NDVI", "LCZ", "Urban Density", "Roads", "Land Cover"],
-    default=["NDVI", "LCZ", "Urban Density"]
-)
+selected_filters = {}
+for layer in selected_layers:
+    selected_filters[layer] = st.sidebar.multiselect(f"Select {layer} categories:", filters[layer], default=filters[layer])
 
-# Create a folium map
-m = folium.Map(location=[36.19, 44.01], zoom_start=12)
+# Create a Folium map
+m = folium.Map(location=[36.2, 44.0], zoom_start=10)
 
-# Function to add layers to the map
-def add_layer(data, layer_name, color, tooltip_column):
-    for _, row in data.iterrows():
-        if row.geometry.is_empty:
-            continue
-        coords = row.geometry.centroid.coords[0]
-        folium.CircleMarker(
-            location=[coords[1], coords[0]],
-            radius=5,
-            color=color,
-            fill=True,
-            fill_opacity=0.7,
-            popup=f"{layer_name}: {row[tooltip_column]}",
-            tooltip=row[tooltip_column],
-        ).add_to(m)
-
-# Add selected layers
+# Add layers based on user selection
 if "NDVI" in selected_layers:
-    filtered_ndvi = ndvi_data[ndvi_data['ndvi_class'].isin(["Dense Forest", "Sparse Grass"])]
-    add_layer(filtered_ndvi, "NDVI", "green", "ndvi_class")
+    filtered_ndvi = {
+        "type": "FeatureCollection",
+        "features": [f for f in ndvi_data["features"] if f["properties"]["category"] in selected_filters["NDVI"]]
+    }
+    GeoJson(filtered_ndvi, name="NDVI", style_function=lambda x: {
+        'color': 'green',
+        'weight': 2
+    }).add_to(m)
 
 if "LCZ" in selected_layers:
-    filtered_lcz = lcz_data[lcz_data['lcz_class'].isin(["Compact High-Rise", "Open Low-Rise", "Industrial Zones"])]
-    add_layer(filtered_lcz, "LCZ", "blue", "lcz_class")
+    filtered_lcz = {
+        "type": "FeatureCollection",
+        "features": [f for f in lcz_data["features"] if f["properties"]["category"] in selected_filters["LCZ"]]
+    }
+    GeoJson(filtered_lcz, name="LCZ", style_function=lambda x: {
+        'color': 'blue',
+        'weight': 2
+    }).add_to(m)
 
 if "Urban Density" in selected_layers:
-    filtered_density = urban_density_data[urban_density_data['density_class'].isin(["high density", "medium density", "low density", "very low density"])]
-    add_layer(filtered_density, "Urban Density", "orange", "density_class")
+    filtered_density = {
+        "type": "FeatureCollection",
+        "features": [f for f in urban_density_data["features"] if f["properties"]["category"] in selected_filters["Urban Density"]]
+    }
+    GeoJson(filtered_density, name="Urban Density", style_function=lambda x: {
+        'color': 'purple',
+        'weight': 2
+    }).add_to(m)
 
 if "Roads" in selected_layers:
-    filtered_roads = road_data[road_data['highway'].isin(["primary", "motorway", "trunk", "secondary", "main"])]
-    add_layer(filtered_roads, "Roads", "red", "highway")
+    filtered_roads = {
+        "type": "FeatureCollection",
+        "features": [f for f in road_data["features"] if f["properties"]["highway"] in selected_filters["Roads"]]
+    }
+    GeoJson(filtered_roads, name="Roads", style_function=lambda x: {
+        'color': 'red',
+        'weight': 1
+    }).add_to(m)
 
 if "Land Cover" in selected_layers:
-    filtered_land_cover = land_cover_data[land_cover_data['land_use'] == "urban"]
-    add_layer(filtered_land_cover, "Land Cover", "purple", "land_use")
+    filtered_land_cover = {
+        "type": "FeatureCollection",
+        "features": [f for f in land_cover_data["features"] if f["properties"]["land_use"] in selected_filters["Land Cover"]]
+    }
+    GeoJson(filtered_land_cover, name="Land Cover", style_function=lambda x: {
+        'color': 'orange',
+        'weight': 2
+    }).add_to(m)
 
-# Display the map
-st_data = st_folium(m, width=800, height=600)
+# Add layer control
+folium.LayerControl().add_to(m)
 
-st.sidebar.write("Use the map to explore the data.")
+# Display the map in Streamlit
+st.title("Interactive Map with Filters")
+st_folium(m, width=700, height=500)
+
 
 
 
