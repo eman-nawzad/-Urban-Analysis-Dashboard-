@@ -45,8 +45,8 @@ data_files = {
     "Urban Density": "data/UrbanDensity.geojson"
 }
 
-# Initialize Map
-m = folium.Map(location=[37.7749, -122.4194], zoom_start=12)
+# Initialize Map (No fixed center, will update dynamically later)
+m = folium.Map()
 
 # Add layers with filtering and tooltips
 for name, path in data_files.items():
@@ -71,11 +71,18 @@ for name, path in data_files.items():
     )
     layer.add_to(m)
 
+    # Update map's center and zoom level based on the bounds of the current dataset
+    minx, miny, maxx, maxy = gdf.total_bounds
+    map_center = [(miny + maxy) / 2, (minx + maxx) / 2]  # Center the map in the middle of the dataset
+    m.fit_bounds([[miny, minx], [maxy, maxx]])  # Fit the map to the dataset bounds
+
 # Add Layer Control
 folium.LayerControl().add_to(m)
 
 # Display the map in Streamlit
 st_data = st_folium(m, width=900, height=600)
+
+
 
 
 
