@@ -2,32 +2,26 @@ import streamlit as st
 import folium
 from streamlit_folium import st_folium
 import geopandas as gpd
-import os
 
-# Function to load GeoJSON data with error handling
+# Load GeoJSON data
 @st.cache_data
-def load_data(file_path, layer_name):
-    if os.path.exists(file_path):
-        try:
-            data = gpd.read_file(file_path)
-            return data
-        except Exception as e:
-            st.error(f"Failed to load {layer_name}: {e}")
-            return None
-    else:
-        st.error(f"File not found: {file_path}")
-        return None
+def load_data():
+    try:
+        ndvi_data = gpd.read_file('data/NDVI-DS.geojson')
+        lcz_data = gpd.read_file('data/LCZ.GeoJson.geojson')
+        urban_density_data = gpd.read_file('data/UrbanDensity.geojson')
+        road_data = gpd.read_file('data/Roads.geojson')
+        land_cover_data = gpd.read_file('data/Land_Use.geojson')
+    except Exception as e:
+        st.error(f"Error loading data: {e}")
+        return None, None, None, None, None
 
-# Load datasets
-ndvi_data = load_data('data/NDVIt.geojson', 'NDVI')
-lcz_data = load_data('data/LCZ.GeoJson.geojson', 'LCZ')
-urban_density_data = load_data('data/UrbanDensity.geojson', 'Urban Density')
-road_data = load_data('data/Roads.geojson', 'Roads')
-land_cover_data = load_data('data/Land_Use.geojson', 'Land Cover')
+    return ndvi_data, lcz_data, urban_density_data, road_data, land_cover_data
 
-# Check if data loaded successfully
-if not all([ndvi_data, lcz_data, urban_density_data, road_data, land_cover_data]):
-    st.stop()  # Stop the app if any dataset fails to load
+ndvi_data, lcz_data, urban_density_data, road_data, land_cover_data = load_data()
+
+if None in [ndvi_data, lcz_data, urban_density_data, road_data, land_cover_data]:
+    st.stop()
 
 # Sidebar for layer selection
 st.sidebar.header("Layer Selection")
@@ -42,15 +36,12 @@ m = folium.Map(location=[36.19, 44.01], zoom_start=12)
 
 # Function to add layers to the map
 def add_layer(data, layer_name, color, tooltip_column):
-    """Adds a layer to the folium map."""
     for _, row in data.iterrows():
-        if row.geometry.geom_type == 'Point':
-            coords = [row.geometry.y, row.geometry.x]
-        else:
-            coords = [row.geometry.centroid.y, row.geometry.centroid.x]
-        
+        if row.geometry.is_empty:
+            continue
+        coords = row.geometry.centroid.coords[0]
         folium.CircleMarker(
-            location=coords,
+            location=[coords[1], coords[0]],
             radius=5,
             color=color,
             fill=True,
@@ -59,7 +50,7 @@ def add_layer(data, layer_name, color, tooltip_column):
             tooltip=row[tooltip_column],
         ).add_to(m)
 
-# Add selected layers to the map
+# Add selected layers
 if "NDVI" in selected_layers:
     filtered_ndvi = ndvi_data[ndvi_data['ndvi_class'].isin(["Dense Forest", "Sparse Grass"])]
     add_layer(filtered_ndvi, "NDVI", "green", "ndvi_class")
@@ -73,7 +64,17 @@ if "Urban Density" in selected_layers:
     add_layer(filtered_density, "Urban Density", "orange", "density_class")
 
 if "Roads" in selected_layers:
-    filtered_roads = road_data[road_data['highway'].isin(["primary", "motorway", "trunk", "secondary",
+    filtered_roads = road_data[road_data['highway'].isin(["primary", "motorway", "trunk", "secondary", "main"])]
+    add_layer(filtered_roads, "Roads", "red", "highway")
+
+if "Land Cover" in selected_layers:
+    filtered_land_cover = land_cover_data[land_cover_data['land_use'] == "urban"]
+    add_layer(filtered_land_cover, "Land Cover", "purple", "land_use")
+
+# Display the map
+st_data = st_folium(m, width=800, height=600)
+
+st.sidebar.write("Use the map to explore the data.")
 
 
 
