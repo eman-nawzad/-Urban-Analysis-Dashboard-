@@ -29,7 +29,7 @@ for idx, row in land_use.iterrows():
         row['geometry'],
         name="Land Use",
         style_function=lambda feature: {
-            'fillColor': color_palettes["Land Use"].get(row['land_use_type'], 'gray'),
+            'fillColor': color_palettes["Land Use"].get(row['landuse_type'], 'gray'),  # Updated column name
             'color': 'black',
             'weight': 1,
             'fillOpacity': 0.6
