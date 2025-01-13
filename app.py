@@ -6,8 +6,8 @@ import geopandas as gpd
 # Load the GeoJSON file (replace with the path to your actual GeoJSON file)
 gdf = gpd.read_file('data/UrbanDensity.geojson')
 
-# Check the data to ensure it's loaded correctly
-st.write(gdf)
+# Check the columns in the GeoDataFrame to find the correct density class column
+st.write(gdf.columns)
 
 # Create a dictionary for density classes (you can customize this if needed)
 density_classes = {
@@ -23,7 +23,8 @@ selected_class = st.selectbox(
     list(density_classes.keys())
 )
 
-# Filter the data based on the selected class
+# Filter the data based on the selected class (make sure the column name matches)
+# Assuming the column name is 'density_class', adjust it if necessary
 filtered_gdf = gdf[gdf['density_class'] == density_classes[selected_class]]
 
 # Create a Folium map centered around the filtered data
@@ -35,6 +36,7 @@ folium.GeoJson(filtered_gdf).add_to(m)
 
 # Show the map in Streamlit
 st_folium(m, width=700, height=500)
+
 
 
 
