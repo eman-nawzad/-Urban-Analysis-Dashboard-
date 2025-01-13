@@ -11,6 +11,22 @@ ndvi_data = gpd.read_file("path_to_ndvi.geojson")
 road_data = gpd.read_file("path_to_roads.geojson")
 urban_density_data = gpd.read_file("path_to_urban_density.geojson")
 
+# Print data structures to check keys
+st.write("Land Use GeoJSON Structure:")
+st.write(land_use_data.head())  # Check the structure of the GeoDataFrame
+
+st.write("LCZ GeoJSON Structure:")
+st.write(lcz_data.head())
+
+st.write("NDVI GeoJSON Structure:")
+st.write(ndvi_data.head())
+
+st.write("Roads GeoJSON Structure:")
+st.write(road_data.head())
+
+st.write("Urban Density GeoJSON Structure:")
+st.write(urban_density_data.head())
+
 # Define custom colors for each layer
 color_palettes = {
     "Land Use": {
@@ -45,6 +61,9 @@ color_palettes = {
 # Function to style layers based on custom colors
 def style_function(feature, layer_type):
     try:
+        # Print the properties of the feature to inspect the structure
+        st.write(f"Feature properties: {feature['properties']}")
+        
         # Try to get the value from feature properties
         property_value = feature['properties'].get(layer_type, None)
         if property_value:
@@ -63,8 +82,8 @@ def style_function(feature, layer_type):
                 'weight': 1,
                 'fillOpacity': 0.7
             }
-    except KeyError:
-        # Handle any unexpected errors
+    except KeyError as e:
+        st.error(f"Error: {e}")
         return {
             'fillColor': 'gray',  # Default color for unknown properties
             'color': 'black',
