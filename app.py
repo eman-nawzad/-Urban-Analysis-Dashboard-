@@ -1,10 +1,7 @@
 import streamlit as st
-import ee
 import folium
+import geopandas as gpd
 from streamlit_folium import st_folium
-
-# Initialize the Earth Engine API
-ee.Initialize()
 
 # Sidebar: Add options to select the timeframe
 st.sidebar.title("Select Timeframe")
@@ -16,64 +13,88 @@ end_date = '2023-12-31'
 # Display the selected date range in the sidebar
 st.sidebar.write(f"Data from: {start_date} to {end_date}")
 
-# Load the MODIS Percent Tree Cover dataset
-dataset = ee.ImageCollection('MODIS/006/MOD44B') \
-                .select('Percent_Tree_Cover') \
-                .filterDate(start_date, end_date) \
-                .first()  # Get the first image in the time range
+# Load your NDVI data (GeoJSON format in the repository)
+ndvi_data_path = 'data/NDVIt.geojson'  # Path to your NDVI GeoJSON file
+land_use_data_path = 'data/Land_Use.geojson'  # Path to your Land Use GeoJSON file
+roads_data_path = 'data/Roads.geojson'  # Path to your Roads GeoJSON file
+urban_density_data_path = 'data/UrbanDensity.geojson'  # Path to your Urban Density GeoJSON file
 
-# Load your polygon asset
-polygon = ee.FeatureCollection('projects/ee-emannawzad/assets/Assignment_Map-polygon')
+# Load GeoJSON files using GeoPandas
+gdf_ndvi = gpd.read_file(ndvi_data_path)
+gdf_land_use = gpd.read_file(land_use_data_path)
+gdf_roads = gpd.read_file(roads_data_path)
+gdf_urban_density = gpd.read_file(urban_density_data_path)
 
-# Clip the dataset to the polygon
-clipped_image = dataset.clip(polygon)
+# Ensure all geometries are in the correct projection (EPSG:4326 for consistency with Leaflet)
+gdf_ndvi = gdf_ndvi.to_crs(epsg=4326)
+gdf_land_use = gdf_land_use.to_crs(epsg=4326)
+gdf_roads = gdf_roads.to_crs(epsg=4326)
+gdf_urban_density = gdf_urban_density.to_crs(epsg=4326)
 
-# Define thresholds for Dense Forest and Sparse Grass
-dense_forest = clipped_image.gte(3).And(clipped_image.lte(5))  # Dense Forest (3–5%)
-sparse_grass = clipped_image.gte(0.5).And(clipped_image.lte(3))  # Sparse Grass (0.5–3%)
+# Sidebar: Allow users to toggle layers
+toggle_ndvi = st.sidebar.checkbox("Show NDVI Layer", value=True)
+toggle_land_use = st.sidebar.checkbox("Show Land Use Layer", value=False)
+toggle_roads = st.sidebar.checkbox("Show Roads Layer", value=False)
+toggle_urban_density = st.sidebar.checkbox("Show Urban Density Layer", value=False)
 
-# Combine the two categories into one single layer
-combined_layer = dense_forest.multiply(1).add(sparse_grass.multiply(2))
+# Create a Folium map centered on the average location of the data
+map_center = [gdf_ndvi.geometry.centroid.y.mean(), gdf_ndvi.geometry.centroid.x.mean()]
+m = folium.Map(location=map_center, zoom_start=10)
 
-# Mask the image to keep only the valid regions
-masked_layer = combined_layer.updateMask(combined_layer)
+# Add layers based on user toggles
+if toggle_ndvi:
+    folium.GeoJson(
+        gdf_ndvi.to_json(),
+        name="NDVI Data",
+        style_function=lambda x: {
+            'fillColor': '#ff7800',
+            'color': 'black',
+            'weight': 0.5,
+            'fillOpacity': 0.7
+        }
+    ).add_to(m)
 
-# Create a folium map centered on the polygon
-m = folium.Map(location=[polygon.geometry().centroid().getInfo()['coordinates'][1], polygon.geometry().centroid().getInfo()['coordinates'][0]], zoom_start=10)
+if toggle_land_use:
+    folium.GeoJson(
+        gdf_land_use.to_json(),
+        name="Land Use Data",
+        style_function=lambda x: {
+            'fillColor': 'green',
+            'color': 'black',
+            'weight': 0.5,
+            'fillOpacity': 0.7
+        }
+    ).add_to(m)
 
-# Add layers to the map
-folium.TileLayer('cartodb positron').add_to(m)
-folium.raster_layers.ImageOverlay(
-    image=dataset.getMapId(),
-    bounds=[[polygon.geometry().centroid().getInfo()['coordinates'][1], polygon.geometry().centroid().getInfo()['coordinates'][0]]],
-    opacity=0.6
-).add_to(m)
+if toggle_roads:
+    folium.GeoJson(
+        gdf_roads.to_json(),
+        name="Roads Data",
+        style_function=lambda x: {
+            'color': 'blue',
+            'weight': 2,
+            'opacity': 0.7
+        }
+    ).add_to(m)
 
-# Add layers for dense forest and sparse grass
-folium.raster_layers.ImageOverlay(
-    image=dense_forest.getMapId()['tile_fetcher'].url_format,
-    bounds=[[polygon.geometry().centroid().getInfo()['coordinates'][1], polygon.geometry().centroid().getInfo()['coordinates'][0]]],
-    opacity=0.5,
-    name="Dense Forest"
-).add_to(m)
+if toggle_urban_density:
+    folium.GeoJson(
+        gdf_urban_density.to_json(),
+        name="Urban Density Data",
+        style_function=lambda x: {
+            'fillColor': 'purple',
+            'color': 'black',
+            'weight': 0.5,
+            'fillOpacity': 0.5
+        }
+    ).add_to(m)
 
-folium.raster_layers.ImageOverlay(
-    image=sparse_grass.getMapId()['tile_fetcher'].url_format,
-    bounds=[[polygon.geometry().centroid().getInfo()['coordinates'][1], polygon.geometry().centroid().getInfo()['coordinates'][0]]],
-    opacity=0.5,
-    name="Sparse Grass"
-).add_to(m)
+# Add layer control (toggle layers)
+folium.LayerControl().add_to(m)
 
-# Add the combined layer (dense forest and sparse grass)
-folium.raster_layers.ImageOverlay(
-    image=masked_layer.getMapId()['tile_fetcher'].url_format,
-    bounds=[[polygon.geometry().centroid().getInfo()['coordinates'][1], polygon.geometry().centroid().getInfo()['coordinates'][0]]],
-    opacity=0.6,
-    name="Combined Layer"
-).add_to(m)
-
-# Display the map in Streamlit
+# Display the map in the Streamlit app
 st_data = st_folium(m, width=900, height=600)
+
 
 
 
