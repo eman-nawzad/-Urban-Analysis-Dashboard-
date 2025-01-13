@@ -5,7 +5,7 @@ from folium import plugins
 from streamlit_folium import st_folium
 
 # Load the urban density GeoJSON data
-gdf = gpd.read_file('path_to_urban_density_GeoJSON.geojson')
+gdf = gpd.read_file('UrbanDensity.geojson')
 
 # Create a dropdown selector in Streamlit for filtering the density classes
 density_classes = {
