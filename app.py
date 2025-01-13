@@ -7,7 +7,7 @@ from streamlit_folium import st_folium
 st.sidebar.title("Select Layer")
 
 # Create a dropdown menu in the sidebar to select the layer
-layer_options = ['None', 'NDVI Data', 'Land Use Data', 'Roads Data', 'Urban Density Data']
+layer_options = ['All', 'NDVI Data', 'Land Use Data', 'Roads Data', 'Urban Density Data']
 selected_layer = st.sidebar.selectbox('Choose a layer to display:', layer_options)
 
 # Load your GeoJSON data (NDVI, Land Use, Roads, Urban Density)
@@ -76,8 +76,13 @@ urban_density_layer = folium.GeoJson(
     }
 )
 
-# Add selected layer based on user's choice
-if selected_layer == 'NDVI Data':
+# Add the selected layer(s) to the map
+if selected_layer == 'All':
+    ndvi_layer.add_to(m)
+    land_use_layer.add_to(m)
+    roads_layer.add_to(m)
+    urban_density_layer.add_to(m)
+elif selected_layer == 'NDVI Data':
     ndvi_layer.add_to(m)
 elif selected_layer == 'Land Use Data':
     land_use_layer.add_to(m)
@@ -86,7 +91,7 @@ elif selected_layer == 'Roads Data':
 elif selected_layer == 'Urban Density Data':
     urban_density_layer.add_to(m)
 
-# Add a Layer Control to the map for toggling visibility of the selected layer
+# Add a Layer Control to the map for toggling visibility of the layers
 folium.LayerControl().add_to(m)
 
 # Display the map in Streamlit
