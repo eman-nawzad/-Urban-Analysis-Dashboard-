@@ -1,71 +1,142 @@
 import streamlit as st
 import folium
-from streamlit_folium import st_folium
 import geopandas as gpd
+from folium import plugins
+from streamlit_folium import st_folium
 
-# Load GeoJSON data
-@st.cache_data
-def load_data():
-    ndvi_data = gpd.read_file('data/NDVIt.geojson')
-    lcz_data = gpd.read_file('data/LCZ.GeoJson.geojson')
-    urban_density_data = gpd.read_file('data/UrbanDensity.geojson')
-    road_data = gpd.read_file('data/Roads.geojson')
-    land_cover_data = gpd.read_file('data/Land_Use.geojson')
+# Predefined paths for your GeoJSON files
+land_use_path = "path/to/your/land_use.geojson"  # Update this with the correct path
+lcz_path = "path/to/your/lcz.geojson"  # Update this with the correct path
+ndvi_path = "path/to/your/ndvi.geojson"  # Update this with the correct path
+roads_path = "path/to/your/roads.geojson"  # Update this with the correct path
+urban_density_path = "path/to/your/urban_density.geojson"  # Update this with the correct path
 
-    return ndvi_data, lcz_data, urban_density_data, road_data, land_cover_data
+# Load GeoJSON data from predefined paths
+land_use_data = gpd.read_file(land_use_path)
+lcz_data = gpd.read_file(lcz_path)
+ndvi_data = gpd.read_file(ndvi_path)
+road_data = gpd.read_file(roads_path)
+urban_density_data = gpd.read_file(urban_density_path)
 
-ndvi_data, lcz_data, urban_density_data, road_data, land_cover_data = load_data()
+# Print data structures to check keys (optional)
+st.write("Land Use GeoJSON Structure:")
+st.write(land_use_data.head())  # Check the structure of the GeoDataFrame
 
-# Sidebar for layer selection
-st.sidebar.header("Layer Selection")
-selected_layers = st.sidebar.multiselect(
-    "Select layers to display on the map:",
-    ["NDVI", "LCZ", "Urban Density", "Roads", "Land Cover"],
-    default=["NDVI", "LCZ", "Urban Density"]
-)
+st.write("LCZ GeoJSON Structure:")
+st.write(lcz_data.head())
 
-# Create a folium map
-m = folium.Map(location=[36.19, 44.01], zoom_start=12)
+st.write("NDVI GeoJSON Structure:")
+st.write(ndvi_data.head())
 
-# Function to add layers to the map
-def add_layer(data, layer_name, color, tooltip_column):
-    for _, row in data.iterrows():
-        coords = row.geometry.centroid.coords[0]
-        folium.CircleMarker(
-            location=[coords[1], coords[0]],
-            radius=5,
-            color=color,
-            fill=True,
-            fill_opacity=0.7,
-            popup=f"{layer_name}: {row[tooltip_column]}",
-            tooltip=row[tooltip_column],
-        ).add_to(m)
+st.write("Roads GeoJSON Structure:")
+st.write(road_data.head())
 
-# Add selected layers
-if "NDVI" in selected_layers:
-    filtered_ndvi = ndvi_data[ndvi_data['ndvi_class'].isin(["Dense Forest", "Sparse Grass"])]
-    add_layer(filtered_ndvi, "NDVI", "green", "ndvi_class")
+st.write("Urban Density GeoJSON Structure:")
+st.write(urban_density_data.head())
 
-if "LCZ" in selected_layers:
-    filtered_lcz = lcz_data[lcz_data['lcz_class'].isin(["Compact High-Rise", "Open Low-Rise", "Industrial Zones"])]
-    add_layer(filtered_lcz, "LCZ", "blue", "lcz_class")
+# Define custom colors for each layer
+color_palettes = {
+    "Land Use": {
+        'Residential': 'lightblue', 
+        'Commercial': 'lightyellow', 
+        'Industrial': 'lightgray'
+    },
+    "Local Climate Zones (LCZ)": {
+        'Compact High-Rise': 'red', 
+        'Open Low-Rise': 'green', 
+        'Industrial Zones': 'purple'
+    },
+    "Vegetation (NDVI)": {
+        'Dense Forest': 'darkgreen', 
+        'Sparse Grass': 'lightgreen'
+    },
+    "Roads": {
+        'primary': 'blue', 
+        'motorway': 'green', 
+        'trunk': 'orange', 
+        'secondary': 'red',
+        'main': 'purple'
+    },
+    "Urban Density": {
+        'High': 'darkred', 
+        'Medium': 'orange', 
+        'Low': 'lightgreen', 
+        'Very Low': 'lightblue'
+    }
+}
 
-if "Urban Density" in selected_layers:
-    filtered_density = urban_density_data[urban_density_data['density_class'].isin(["high density", "medium density", "low density", "very low density"])]
-    add_layer(filtered_density, "Urban Density", "orange", "density_class")
+# Function to style layers based on custom colors
+def style_function(feature, layer_type):
+    try:
+        # Print the properties of the feature to inspect the structure
+        st.write(f"Feature properties: {feature['properties']}")
+        
+        # Try to get the value from feature properties
+        property_value = feature['properties'].get(layer_type, None)
+        if property_value:
+            # Apply the color based on the property value
+            return {
+                'fillColor': color_palettes[layer_type].get(property_value, 'gray'),
+                'color': 'black',
+                'weight': 1,
+                'fillOpacity': 0.7
+            }
+        else:
+            # Default color if the property value is missing
+            return {
+                'fillColor': 'gray',  # Default color
+                'color': 'black',
+                'weight': 1,
+                'fillOpacity': 0.7
+            }
+    except KeyError as e:
+        st.error(f"Error: {e}")
+        return {
+            'fillColor': 'gray',  # Default color for unknown properties
+            'color': 'black',
+            'weight': 1,
+            'fillOpacity': 0.7
+        }
+
+# Initialize map
+m = folium.Map(location=[latitude, longitude], zoom_start=10)
+
+# Add selected layers to the map
+selected_layers = ['Land Use', 'Local Climate Zones (LCZ)', 'Vegetation (NDVI)', 'Roads', 'Urban Density']
+
+if "Land Use" in selected_layers:
+    folium.GeoJson(
+        land_use_data,
+        style_function=lambda feature: style_function(feature, "Land Use")
+    ).add_to(m)
+
+if "Local Climate Zones (LCZ)" in selected_layers:
+    folium.GeoJson(
+        lcz_data,
+        style_function=lambda feature: style_function(feature, "Local Climate Zones (LCZ)")
+    ).add_to(m)
+
+if "Vegetation (NDVI)" in selected_layers:
+    folium.GeoJson(
+        ndvi_data,
+        style_function=lambda feature: style_function(feature, "Vegetation (NDVI)")
+    ).add_to(m)
 
 if "Roads" in selected_layers:
-    filtered_roads = road_data[road_data['highway'].isin(["primary", "motorway", "trunk", "secondary", "main"])]
-    add_layer(filtered_roads, "Roads", "red", "highway")
+    folium.GeoJson(
+        road_data,
+        style_function=lambda feature: style_function(feature, "Roads")
+    ).add_to(m)
 
-if "Land Cover" in selected_layers:
-    filtered_land_cover = land_cover_data[land_cover_data['land_use'] == "urban"]
-    add_layer(filtered_land_cover, "Land Cover", "purple", "land_use")
+if "Urban Density" in selected_layers:
+    folium.GeoJson(
+        urban_density_data,
+        style_function=lambda feature: style_function(feature, "Urban Density")
+    ).add_to(m)
 
-# Display the map
-st_data = st_folium(m, width=800, height=600)
+# Display map in Streamlit
+st_folium(m, width=700, height=500)
 
-st.sidebar.write("Use the map to explore the data.")
 
 
 
