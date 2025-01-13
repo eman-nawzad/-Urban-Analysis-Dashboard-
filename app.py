@@ -1,84 +1,95 @@
 import streamlit as st
-import matplotlib.pyplot as plt
+import folium
 import geopandas as gpd
-from shapely.geometry import box
+from streamlit_folium import st_folium
 
-# Load GeoJSON data
-@st.cache_data
-def load_geojson(file_path):
-    try:
-        return gpd.read_file(file_path)
-    except Exception as e:
-        st.error(f"Error loading {file_path}: {e}")
-        return None
+# Sidebar: Add options to select the timeframe
+st.sidebar.title("Select Timeframe")
 
-# Load all GeoJSON files
-ndvi_data = load_geojson('data/NDVIt.geojson')
-lcz_data = load_geojson('data/LCZ.GeoJson.geojson')
-urban_density_data = load_geojson('data/UrbanDensity.geojson')
-road_data = load_geojson('data/Roads.geojson')
-land_cover_data = load_geojson('data/Land_Use.geojson')
+# Set the date range from 2018 to 2023
+start_date = '2018-01-01'
+end_date = '2023-12-31'
 
-# Check if data is loaded
-if not all([ndvi_data, lcz_data, urban_density_data, road_data, land_cover_data]):
-    st.error("Failed to load one or more GeoJSON files. Check file paths or format.")
-    st.stop()
+# Display the selected date range in the sidebar
+st.sidebar.write(f"Data from: {start_date} to {end_date}")
 
-# Sidebar configuration
-st.sidebar.header("Map Filters")
+# Load your GeoJSON data (NDVI, Land Use, Roads, Urban Density)
+ndvi_data_path = 'data/NDVIt.geojson'  # Path to your NDVI GeoJSON file
+land_use_data_path = 'data/Land_Use.geojson'  # Path to your Land Use GeoJSON file
+roads_data_path = 'data/Roads.geojson'  # Path to your Roads GeoJSON file
+urban_density_data_path = 'data/UrbanDensity.geojson'  # Path to your Urban Density GeoJSON file
 
-# Layer options
-layer_options = ["NDVI", "LCZ", "Urban Density", "Roads", "Land Cover"]
-selected_layers = st.sidebar.multiselect("Select layers to display:", layer_options, default=layer_options)
+# Load the GeoJSON files using GeoPandas
+gdf_ndvi = gpd.read_file(ndvi_data_path)
+gdf_land_use = gpd.read_file(land_use_data_path)
+gdf_roads = gpd.read_file(roads_data_path)
+gdf_urban_density = gpd.read_file(urban_density_data_path)
 
-# Filter options for each layer
-filters = {
-    "NDVI": ["Dense Forest", "Sparse Grass"],
-    "LCZ": ["Compact High-Rise", "Open Low-Rise", "Industrial Zones"],
-    "Urban Density": ["High Density", "Medium Density", "Low Density", "Very Low Density"],
-    "Roads": ["Primary", "Motorway", "Trunk", "Secondary", "Main"],
-    "Land Cover": ["Urban"]
-}
+# Ensure all geometries are in the correct projection (EPSG:4326 for consistency with Leaflet)
+gdf_ndvi = gdf_ndvi.to_crs(epsg=4326)
+gdf_land_use = gdf_land_use.to_crs(epsg=4326)
+gdf_roads = gdf_roads.to_crs(epsg=4326)
+gdf_urban_density = gdf_urban_density.to_crs(epsg=4326)
 
-selected_filters = {}
-for layer in selected_layers:
-    selected_filters[layer] = st.sidebar.multiselect(f"Select {layer} categories:", filters[layer], default=filters[layer])
+# Create a Folium map centered on the average location of the data
+map_center = [gdf_ndvi.geometry.centroid.y.mean(), gdf_ndvi.geometry.centroid.x.mean()]
+m = folium.Map(location=map_center, zoom_start=10)
 
-# Create a base map
-fig, ax = plt.subplots(figsize=(10, 10))
-world_bounds = box(-180, -90, 180, 90)
-world = gpd.GeoSeries([world_bounds]).set_crs(epsg=4326)
-world.boundary.plot(ax=ax, color="black")
+# Create GeoJSON layers for each dataset with custom styling
+ndvi_layer = folium.GeoJson(
+    gdf_ndvi.to_json(),
+    name="NDVI Data",
+    style_function=lambda x: {
+        'fillColor': '#ff7800',
+        'color': 'black',
+        'weight': 0.5,
+        'fillOpacity': 0.7
+    }
+)
 
-# Add layers based on user selection
-if "NDVI" in selected_layers:
-    filtered_ndvi = ndvi_data[ndvi_data["category"].isin(selected_filters["NDVI"])]
-    filtered_ndvi.plot(ax=ax, color="green", label="NDVI")
+land_use_layer = folium.GeoJson(
+    gdf_land_use.to_json(),
+    name="Land Use Data",
+    style_function=lambda x: {
+        'fillColor': 'green',
+        'color': 'black',
+        'weight': 0.5,
+        'fillOpacity': 0.7
+    }
+)
 
-if "LCZ" in selected_layers:
-    filtered_lcz = lcz_data[lcz_data["category"].isin(selected_filters["LCZ"])]
-    filtered_lcz.plot(ax=ax, color="blue", label="LCZ")
+roads_layer = folium.GeoJson(
+    gdf_roads.to_json(),
+    name="Roads Data",
+    style_function=lambda x: {
+        'color': 'blue',
+        'weight': 2,
+        'opacity': 0.7
+    }
+)
 
-if "Urban Density" in selected_layers:
-    filtered_density = urban_density_data[urban_density_data["category"].isin(selected_filters["Urban Density"])]
-    filtered_density.plot(ax=ax, color="purple", label="Urban Density")
+urban_density_layer = folium.GeoJson(
+    gdf_urban_density.to_json(),
+    name="Urban Density Data",
+    style_function=lambda x: {
+        'fillColor': 'purple',
+        'color': 'black',
+        'weight': 0.5,
+        'fillOpacity': 0.5
+    }
+)
 
-if "Roads" in selected_layers:
-    filtered_roads = road_data[road_data["highway"].isin(selected_filters["Roads"])]
-    filtered_roads.plot(ax=ax, color="red", label="Roads", linewidth=0.5)
+# Add the layers to the map
+ndvi_layer.add_to(m)
+land_use_layer.add_to(m)
+roads_layer.add_to(m)
+urban_density_layer.add_to(m)
 
-if "Land Cover" in selected_layers:
-    filtered_land_cover = land_cover_data[land_cover_data["land_use"].isin(selected_filters["Land Cover"])]
-    filtered_land_cover.plot(ax=ax, color="orange", label="Land Cover")
-
-# Finalize map
-ax.legend()
-ax.set_title("Interactive Map")
-ax.set_xlabel("Longitude")
-ax.set_ylabel("Latitude")
+# Add a Layer Control to the map for toggling visibility of all layers
+folium.LayerControl().add_to(m)
 
 # Display the map in Streamlit
-st.pyplot(fig)
+st_data = st_folium(m, width=900, height=600)
 
 
 
