@@ -1,86 +1,80 @@
 import streamlit as st
+import ee
 import folium
-import geopandas as gpd
-from folium import plugins
 from streamlit_folium import st_folium
 
-# Helper function to filter GeoDataFrame based on a column and value
-def filter_gdf(gdf, column, value):
-    return gdf[gdf[column] == value]
+# Initialize the Earth Engine API
+ee.Initialize()
 
-# Helper function to get valid tooltip fields
-def get_valid_tooltip_fields(gdf):
-    # Use the first two columns as fields if available
-    if len(gdf.columns) >= 2:
-        fields = list(gdf.columns[:2])
-        aliases = list(gdf.columns[:2])
-    elif len(gdf.columns) == 1:
-        fields = [gdf.columns[0]]
-        aliases = [gdf.columns[0]]
-    else:
-        fields, aliases = [], []
-    return fields, aliases
+# Sidebar: Add options to select the timeframe
+st.sidebar.title("Select Timeframe")
 
-# Streamlit Sidebar for user input controls
-st.sidebar.header("Interactive Controls")
+# Set the date range from 2018 to 2023
+start_date = '2018-01-01'
+end_date = '2023-12-31'
 
-# Road Type Selection
-road_types = ['All', 'Primary', 'Secondary', 'Tertiary']
-selected_road_type = st.sidebar.selectbox("Select Road Type", road_types)
+# Display the selected date range in the sidebar
+st.sidebar.write(f"Data from: {start_date} to {end_date}")
 
-# Urban Density Selection
-density_levels = ['All', 'Low', 'Medium', 'High']
-selected_density = st.sidebar.selectbox("Select Urban Density", density_levels)
+# Load the MODIS Percent Tree Cover dataset
+dataset = ee.ImageCollection('MODIS/006/MOD44B') \
+                .select('Percent_Tree_Cover') \
+                .filterDate(start_date, end_date) \
+                .first()  # Get the first image in the time range
 
-# Timeframe Selection for Vegetation Data
-timeframes = ['All Time', 'Recent']
-selected_timeframe = st.sidebar.selectbox("Select Vegetation Timeframe", timeframes)
+# Load your polygon asset
+polygon = ee.FeatureCollection('projects/ee-emannawzad/assets/Assignment_Map-polygon')
 
-# Load GeoJSON files
-data_files = {
-    "Land Use": "data/Land_Use.geojson",
-    "Local Climate Zones": "data/LCZ.GeoJson.geojson",
-    "Vegetation Distribution (NDVI)": "data/NDVIt.geojson",
-    "Roads": "data/Roads.geojson",
-    "Urban Density": "data/UrbanDensity.geojson"
-}
+# Clip the dataset to the polygon
+clipped_image = dataset.clip(polygon)
 
-# Initialize Map (No fixed center, will update dynamically later)
-m = folium.Map()
+# Define thresholds for Dense Forest and Sparse Grass
+dense_forest = clipped_image.gte(3).And(clipped_image.lte(5))  # Dense Forest (3–5%)
+sparse_grass = clipped_image.gte(0.5).And(clipped_image.lte(3))  # Sparse Grass (0.5–3%)
 
-# Add layers with filtering and tooltips
-for name, path in data_files.items():
-    gdf = gpd.read_file(path)
-    
-    # Apply specific filters based on user selection
-    if name == "Roads" and selected_road_type != "All":
-        gdf = filter_gdf(gdf, "highway", selected_road_type)
-    elif name == "Urban Density" and selected_density != "All":
-        gdf = filter_gdf(gdf, "density_level", selected_density)
-    elif name == "Vegetation Distribution (NDVI)" and selected_timeframe != "All Time":
-        gdf = gdf[gdf["timeframe"] == selected_timeframe]
+# Combine the two categories into one single layer
+combined_layer = dense_forest.multiply(1).add(sparse_grass.multiply(2))
 
-    # Ensure valid tooltip fields
-    fields, aliases = get_valid_tooltip_fields(gdf)
+# Mask the image to keep only the valid regions
+masked_layer = combined_layer.updateMask(combined_layer)
 
-    # Add GeoJSON layer with tooltips
-    layer = folium.GeoJson(
-        gdf,
-        name=name,
-        tooltip=folium.GeoJsonTooltip(fields=fields, aliases=aliases) if fields else None
-    )
-    layer.add_to(m)
+# Create a folium map centered on the polygon
+m = folium.Map(location=[polygon.geometry().centroid().getInfo()['coordinates'][1], polygon.geometry().centroid().getInfo()['coordinates'][0]], zoom_start=10)
 
-    # Update map's center and zoom level based on the bounds of the current dataset
-    minx, miny, maxx, maxy = gdf.total_bounds
-    map_center = [(miny + maxy) / 2, (minx + maxx) / 2]  # Center the map in the middle of the dataset
-    m.fit_bounds([[miny, minx], [maxy, maxx]])  # Fit the map to the dataset bounds
+# Add layers to the map
+folium.TileLayer('cartodb positron').add_to(m)
+folium.raster_layers.ImageOverlay(
+    image=dataset.getMapId(),
+    bounds=[[polygon.geometry().centroid().getInfo()['coordinates'][1], polygon.geometry().centroid().getInfo()['coordinates'][0]]],
+    opacity=0.6
+).add_to(m)
 
-# Add Layer Control
-folium.LayerControl().add_to(m)
+# Add layers for dense forest and sparse grass
+folium.raster_layers.ImageOverlay(
+    image=dense_forest.getMapId()['tile_fetcher'].url_format,
+    bounds=[[polygon.geometry().centroid().getInfo()['coordinates'][1], polygon.geometry().centroid().getInfo()['coordinates'][0]]],
+    opacity=0.5,
+    name="Dense Forest"
+).add_to(m)
+
+folium.raster_layers.ImageOverlay(
+    image=sparse_grass.getMapId()['tile_fetcher'].url_format,
+    bounds=[[polygon.geometry().centroid().getInfo()['coordinates'][1], polygon.geometry().centroid().getInfo()['coordinates'][0]]],
+    opacity=0.5,
+    name="Sparse Grass"
+).add_to(m)
+
+# Add the combined layer (dense forest and sparse grass)
+folium.raster_layers.ImageOverlay(
+    image=masked_layer.getMapId()['tile_fetcher'].url_format,
+    bounds=[[polygon.geometry().centroid().getInfo()['coordinates'][1], polygon.geometry().centroid().getInfo()['coordinates'][0]]],
+    opacity=0.6,
+    name="Combined Layer"
+).add_to(m)
 
 # Display the map in Streamlit
 st_data = st_folium(m, width=900, height=600)
+
 
 
 
