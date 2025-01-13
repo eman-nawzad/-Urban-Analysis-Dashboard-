@@ -40,7 +40,7 @@ selected_timeframe = st.sidebar.selectbox("Select Vegetation Timeframe", timefra
 data_files = {
     "Land Use": "data/Land_Use.geojson",
     "Local Climate Zones": "data/LCZ.GeoJson.geojson",
-    "Vegetation Distribution (NDVI)": "data/NDVI-DS.geojson",
+    "Vegetation Distribution (NDVI)": "data/NDVIt.geojson",
     "Roads": "data/Roads.geojson",
     "Urban Density": "data/UrbanDensity.geojson"
 }
