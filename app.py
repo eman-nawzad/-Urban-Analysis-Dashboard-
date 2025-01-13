@@ -1,46 +1,54 @@
-import folium
 import streamlit as st
+import folium
 import geopandas as gpd
-import pandas as pd
 from folium import plugins
+from streamlit_folium import st_folium
 
-# Read GeoJSON files from the repository
-land_use_data = gpd.read_file("data/Land_Use.geojson")
-lcz_data = gpd.read_file("data/LCZ.GeoJson.geojson")
-ndvi_data = gpd.read_file("data/NDVIt.geojson")
-roads_data = gpd.read_file("data/Roads.geojson")
-urban_density_data = gpd.read_file("data/UrbanDensity.geojson")
+# Load GeoJSON data
+land_use_data = gpd.read_file("path_to_land_use.geojson")
+lcz_data = gpd.read_file("path_to_lcz.geojson")
+ndvi_data = gpd.read_file("path_to_ndvi.geojson")
+road_data = gpd.read_file("path_to_roads.geojson")
+urban_density_data = gpd.read_file("path_to_urban_density.geojson")
 
 # Define custom colors for each layer
 color_palettes = {
-    "Land Use": {'Residential': 'lightblue', 'Commercial': 'lightyellow', 'Industrial': 'lightgray'},
-    "Local Climate Zones (LCZ)": {'Compact High-Rise': 'blue', 'Open Low-Rise': 'orange', 'Industrial Zones': 'red'},
-    "Vegetation (NDVI)": {'Dense Forest': 'darkgreen', 'Sparse Grass': 'lightgreen'},
-    "Roads": {'Primary': 'blue', 'Motorway': 'red', 'Trunk': 'green', 'Secondary': 'orange', 'Main': 'yellow'},
-    "Urban Density": {'High Density': 'darkred', 'Medium Density': 'red', 'Low Density': 'orange', 'Very Low Density': 'lightyellow'}
+    "Land Use": {
+        'Residential': 'lightblue', 
+        'Commercial': 'lightyellow', 
+        'Industrial': 'lightgray'
+    },
+    "Local Climate Zones (LCZ)": {
+        'Compact High-Rise': 'red', 
+        'Open Low-Rise': 'green', 
+        'Industrial Zones': 'purple'
+    },
+    "Vegetation (NDVI)": {
+        'Dense Forest': 'darkgreen', 
+        'Sparse Grass': 'lightgreen'
+    },
+    "Roads": {
+        'primary': 'blue', 
+        'motorway': 'green', 
+        'trunk': 'orange', 
+        'secondary': 'red',
+        'main': 'purple'
+    },
+    "Urban Density": {
+        'High': 'darkred', 
+        'Medium': 'orange', 
+        'Low': 'lightgreen', 
+        'Very Low': 'lightblue'
+    }
 }
-
-# Initialize the map
-m = folium.Map(location=[35.6895, 139.6917], zoom_start=12)
-
-# Sidebar for Layer Control
-st.sidebar.title("Layer Control")
-layer_options = [
-    "Land Use",
-    "Local Climate Zones (LCZ)",
-    "Vegetation (NDVI)",
-    "Roads",
-    "Urban Density"
-]
-
-selected_layers = st.sidebar.multiselect("Select layers to display", layer_options, default=layer_options)
 
 # Function to style layers based on custom colors
 def style_function(feature, layer_type):
     try:
-        # Check if the layer type exists as a key in the feature properties
+        # Try to get the value from feature properties
         property_value = feature['properties'].get(layer_type, None)
         if property_value:
+            # Apply the color based on the property value
             return {
                 'fillColor': color_palettes[layer_type].get(property_value, 'gray'),
                 'color': 'black',
@@ -48,13 +56,15 @@ def style_function(feature, layer_type):
                 'fillOpacity': 0.7
             }
         else:
+            # Default color if the property value is missing
             return {
-                'fillColor': 'gray',  # Default color if the property is not found
+                'fillColor': 'gray',  # Default color
                 'color': 'black',
                 'weight': 1,
                 'fillOpacity': 0.7
             }
     except KeyError:
+        # Handle any unexpected errors
         return {
             'fillColor': 'gray',  # Default color for unknown properties
             'color': 'black',
@@ -62,7 +72,12 @@ def style_function(feature, layer_type):
             'fillOpacity': 0.7
         }
 
+# Initialize map
+m = folium.Map(location=[latitude, longitude], zoom_start=10)
+
 # Add selected layers to the map
+selected_layers = ['Land Use', 'Local Climate Zones (LCZ)', 'Vegetation (NDVI)', 'Roads', 'Urban Density']
+
 if "Land Use" in selected_layers:
     folium.GeoJson(
         land_use_data,
@@ -72,7 +87,7 @@ if "Land Use" in selected_layers:
 if "Local Climate Zones (LCZ)" in selected_layers:
     folium.GeoJson(
         lcz_data,
-        style_function=lambda feature: style_function(feature, "LCZ")
+        style_function=lambda feature: style_function(feature, "Local Climate Zones (LCZ)")
     ).add_to(m)
 
 if "Vegetation (NDVI)" in selected_layers:
@@ -83,7 +98,7 @@ if "Vegetation (NDVI)" in selected_layers:
 
 if "Roads" in selected_layers:
     folium.GeoJson(
-        roads_data,
+        road_data,
         style_function=lambda feature: style_function(feature, "Roads")
     ).add_to(m)
 
@@ -93,16 +108,9 @@ if "Urban Density" in selected_layers:
         style_function=lambda feature: style_function(feature, "Urban Density")
     ).add_to(m)
 
-# Add Layer Control
-folium.LayerControl().add_to(m)
+# Display map in Streamlit
+st_folium(m, width=700, height=500)
 
-# Display the map in Streamlit
-st.title("Urban Analysis Dashboard")
-st.write("This is your Urban Analysis Dashboard with interactive layers.")
-
-# Show the map in Streamlit
-st_data = m._repr_html_()
-st.markdown(st_data, unsafe_allow_html=True)
 
 
 
