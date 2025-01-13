@@ -20,7 +20,9 @@ def load_data():
 
 ndvi_data, lcz_data, urban_density_data, road_data, land_cover_data = load_data()
 
-if None in [ndvi_data, lcz_data, urban_density_data, road_data, land_cover_data]:
+# Check if any data failed to load or is empty
+if any(data is None or data.empty for data in [ndvi_data, lcz_data, urban_density_data, road_data, land_cover_data]):
+    st.error("One or more datasets failed to load or are empty. Please check the files.")
     st.stop()
 
 # Sidebar for layer selection
@@ -75,6 +77,7 @@ if "Land Cover" in selected_layers:
 st_data = st_folium(m, width=800, height=600)
 
 st.sidebar.write("Use the map to explore the data.")
+
 
 
 
