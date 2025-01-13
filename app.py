@@ -11,7 +11,7 @@ layer_options = ['All', 'NDVI Data', 'Land Use Data', 'Roads Data', 'Urban Densi
 selected_layer = st.sidebar.selectbox('Choose a layer to display:', layer_options)
 
 # Load your filtered GeoJSON data (from GEE export)
-ndvi_data_path = 'data/Filtered_NDVI.geojson'  # Path to your filtered NDVI GeoJSON file
+ndvi_data_path = 'data/NDVIt.geojson'  # Path to your filtered NDVI GeoJSON file
 land_use_data_path = 'data/Land_Use.geojson'  # Path to your Land Use GeoJSON file
 roads_data_path = 'data/Roads.geojson'  # Path to your Roads GeoJSON file
 urban_density_data_path = 'data/UrbanDensity.geojson'  # Path to your Urban Density GeoJSON file
