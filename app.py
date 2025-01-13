@@ -6,14 +6,23 @@ from shapely.geometry import box
 # Load GeoJSON data
 @st.cache_data
 def load_geojson(file_path):
-    return gpd.read_file(file_path)
+    try:
+        return gpd.read_file(file_path)
+    except Exception as e:
+        st.error(f"Error loading {file_path}: {e}")
+        return None
 
 # Load all GeoJSON files
-ndvi_data = load_geojson('data/NDVI-DS.geojson')
+ndvi_data = load_geojson('data/NDVIt.geojson')
 lcz_data = load_geojson('data/LCZ.GeoJson.geojson')
 urban_density_data = load_geojson('data/UrbanDensity.geojson')
 road_data = load_geojson('data/Roads.geojson')
 land_cover_data = load_geojson('data/Land_Use.geojson')
+
+# Check if data is loaded
+if not all([ndvi_data, lcz_data, urban_density_data, road_data, land_cover_data]):
+    st.error("Failed to load one or more GeoJSON files. Check file paths or format.")
+    st.stop()
 
 # Sidebar configuration
 st.sidebar.header("Map Filters")
@@ -39,28 +48,28 @@ for layer in selected_layers:
 fig, ax = plt.subplots(figsize=(10, 10))
 world_bounds = box(-180, -90, 180, 90)
 world = gpd.GeoSeries([world_bounds]).set_crs(epsg=4326)
-world.boundary.plot(ax=ax, color='black')
+world.boundary.plot(ax=ax, color="black")
 
 # Add layers based on user selection
 if "NDVI" in selected_layers:
     filtered_ndvi = ndvi_data[ndvi_data["category"].isin(selected_filters["NDVI"])]
-    filtered_ndvi.plot(ax=ax, color='green', label='NDVI')
+    filtered_ndvi.plot(ax=ax, color="green", label="NDVI")
 
 if "LCZ" in selected_layers:
     filtered_lcz = lcz_data[lcz_data["category"].isin(selected_filters["LCZ"])]
-    filtered_lcz.plot(ax=ax, color='blue', label='LCZ')
+    filtered_lcz.plot(ax=ax, color="blue", label="LCZ")
 
 if "Urban Density" in selected_layers:
     filtered_density = urban_density_data[urban_density_data["category"].isin(selected_filters["Urban Density"])]
-    filtered_density.plot(ax=ax, color='purple', label='Urban Density')
+    filtered_density.plot(ax=ax, color="purple", label="Urban Density")
 
 if "Roads" in selected_layers:
     filtered_roads = road_data[road_data["highway"].isin(selected_filters["Roads"])]
-    filtered_roads.plot(ax=ax, color='red', label='Roads')
+    filtered_roads.plot(ax=ax, color="red", label="Roads", linewidth=0.5)
 
 if "Land Cover" in selected_layers:
     filtered_land_cover = land_cover_data[land_cover_data["land_use"].isin(selected_filters["Land Cover"])]
-    filtered_land_cover.plot(ax=ax, color='orange', label='Land Cover')
+    filtered_land_cover.plot(ax=ax, color="orange", label="Land Cover")
 
 # Finalize map
 ax.legend()
