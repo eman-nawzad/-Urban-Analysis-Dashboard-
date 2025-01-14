@@ -44,18 +44,24 @@ if selected_file == "Urban Density":
     filtered_gdf = gdf[gdf['label'] == selected_density_value]
 
 elif selected_file == "LCZ":
-    # Filter by specific LCZ classes (Compact High-Rise, Open Low-Rise, Industrial Zones)
-    lcz_filter = {
+    # Map the LCZ class names to their corresponding numerical values
+    lcz_classes = {
         "Compact High-Rise": 1,
         "Open Low-Rise": 6,
         "Industrial Zones": 8
     }
-    selected_lcz = st.sidebar.selectbox(
-        "Filter by LCZ filter",
-        list(lcz_filter.keys())
+    
+    # Sidebar selectbox now displays the class names
+    selected_lcz_class = st.sidebar.selectbox(
+        "Filter by LCZ Class",
+        list(lcz_classes.keys())
     )
-    selected_lcz_value = lcz_filter[selected_lcz]
-    filtered_gdf = gdf[gdf['lcz_filter'] == selected_lcz_value]
+    
+    # Get the numerical value for the selected LCZ class
+    selected_lcz_value = lcz_classes[selected_lcz_class]
+    
+    # Filter by the corresponding numerical value in 'LCZ_Filter' column
+    filtered_gdf = gdf[gdf['LCZ_Filter'] == selected_lcz_value]
 
 elif selected_file == "Land Use":
     # Example: Filter by land use class
