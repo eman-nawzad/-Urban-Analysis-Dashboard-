@@ -8,7 +8,7 @@ data_files = {
     "Urban Density": "data/UrbanDensity.geojson",
     "LCZ": "data/LCZ_Zones.geojson",
     "Land Use": "data/Land_Use.geojson",
-    "NDVI": "data/NDVIt.geojson",
+    "NDVI": "data/NDVIT.geojson",
     "Roads": "data/Roads.geojson"
 }
 
