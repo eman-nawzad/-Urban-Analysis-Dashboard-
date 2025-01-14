@@ -6,8 +6,11 @@ import geopandas as gpd
 # Load the GeoJSON file
 gdf = gpd.read_file('data/UrbanDensity.geojson')
 
-# Check the columns in the GeoDataFrame to find the correct density class column
-st.write(gdf.columns)
+# Clean column names by stripping spaces
+gdf.columns = gdf.columns.str.strip()
+
+# Check for unique values in the 'density_class' column
+st.write("Available density classes:", gdf['density_class'].unique())
 
 # Create a dictionary for density classes
 density_classes = {
@@ -31,19 +34,20 @@ if selected_classes:
 else:
     filtered_gdf = gdf  # If no class selected, show all data
 
-# Create a Folium map centered around the filtered data
-m = folium.Map(location=[filtered_gdf.geometry.centroid.y.mean(), filtered_gdf.geometry.centroid.x.mean()],
-               zoom_start=12)
-
-# Add the filtered GeoJSON data to the map
-folium.GeoJson(filtered_gdf).add_to(m)
-
-# Show the map in Streamlit
-st_folium(m, width=700, height=500)
+# Show warning if no data is found after filtering
+if filtered_gdf.empty:
+    st.warning("No data available for the selected density class.")
+else:
+    # Create a Folium map centered around the filtered data
+    m = folium.Map(location=[filtered_gdf.geometry.centroid.y.mean(), filtered_gdf.geometry.centroid.x.mean()],
+                   zoom_start=12)
+    folium.GeoJson(filtered_gdf).add_to(m)
+    st_folium(m, width=700, height=500)
 
 # Show the filtered table data
 st.subheader("Filtered Urban Density Data")
 st.dataframe(filtered_gdf)
+
 
 
 
