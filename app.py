@@ -83,12 +83,11 @@ elif selected_file == "NDVI":
 else:
     filtered_gdf = gdf
 
-# Show instructions if the data file is empty
+# Sidebar warning message for no data
 if filtered_gdf.empty:
-    st.warning(f"No data available for the selected filter in the '{selected_file}' dataset. Please try a different combination.")
+    st.sidebar.warning(f"No data available for the selected filter in the '{selected_file}' dataset. Please try a different combination.")
 else:
-    # Show a success message when data is available
-    st.success(f"Displaying data from the '{selected_file}' dataset.")
+    st.sidebar.success(f"Displaying data from the '{selected_file}' dataset.")
 
 # Create a Folium map centered around the filtered data
 m = folium.Map(location=[filtered_gdf.geometry.centroid.y.mean(), filtered_gdf.geometry.centroid.x.mean()],
