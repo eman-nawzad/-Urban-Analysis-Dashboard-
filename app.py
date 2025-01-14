@@ -80,6 +80,18 @@ elif selected_file == "NDVI":
     else:
         filtered_gdf = gdf
 
+elif selected_file == "Roads":
+    # Filter by highway types (road types)
+    if 'highway' in gdf.columns:
+        highway_types = gdf['highway'].unique()
+        selected_highway = st.sidebar.selectbox(
+            "Filter by Road Type (Highway)",
+            list(highway_types)
+        )
+        filtered_gdf = gdf[gdf['highway'] == selected_highway]
+    else:
+        filtered_gdf = gdf
+
 else:
     filtered_gdf = gdf
 
@@ -130,6 +142,7 @@ st_folium(m, width=700, height=500)
 # Display the filtered dataset as a table below the map
 st.write(f"### {selected_file} Dataset")
 st.dataframe(filtered_gdf)  # Show the filtered data as a table below the map
+
 
 
 
