@@ -13,21 +13,18 @@ data_files = {
 }
 
 # Sidebar for selecting which dataset to view
-st.sidebar.title("Select Dataset and Apply Filters")
+st.sidebar.title("Dataset Selector")
 
 # Option to select all layers
 show_all_layers = st.sidebar.checkbox("Show All Layers", value=False)
 
 # Dataset selection box
-selected_file = st.sidebar.selectbox(
-    "Choose a dataset",
-    list(data_files.keys())
-)
+selected_file = st.sidebar.selectbox("Choose a dataset", list(data_files.keys()))
 
 # Load the selected dataset
 gdf = gpd.read_file(data_files[selected_file])
 
-# Filter based on the selected dataset (this can be customized based on attributes)
+# Filter based on the selected dataset
 if selected_file == "Urban Density":
     # Example: Filter by urban density classes
     density_classes = {
@@ -47,15 +44,13 @@ if selected_file == "Urban Density":
         selected_density_value = density_classes[selected_density]
         filtered_gdf = gdf[gdf['label'] == selected_density_value]
 
-elif selected_file == "LCZ_Zones":
-    # Map the LCZ class names to their corresponding numerical values
+elif selected_file == "LCZ":
+    # Map LCZ classes
     lcz_classes = {
         "Compact High-Rise": 1,
         "Open Low-Rise": 6,
         "Industrial Zones": 8
     }
-    
-    # Sidebar selectbox now displays the class names plus "All" option
     selected_lcz_class = st.sidebar.selectbox(
         "Filter by LCZ Class",
         list(lcz_classes.keys()) + ["All"]
@@ -64,20 +59,16 @@ elif selected_file == "LCZ_Zones":
     if selected_lcz_class == "All":
         filtered_gdf = gdf
     else:
-        # Get the numerical value for the selected LCZ class
         selected_lcz_value = lcz_classes[selected_lcz_class]
-        
-        # Filter by the corresponding numerical value in 'LCZ_Filter' column
         filtered_gdf = gdf[gdf['LCZ_Filter'] == selected_lcz_value]
 
 elif selected_file == "Land Use":
-    # Replace land use class values with their corresponding names
+    # Land use classes
     land_use_classes = {
         3: "Croplands",
         4: "Urban",
         6: "Barren"
     }
-    
     selected_land_use = st.sidebar.selectbox(
         "Filter by Land Use Class",
         list(land_use_classes.values()) + ["All"]
@@ -88,111 +79,54 @@ elif selected_file == "Land Use":
     else:
         selected_land_use_value = [key for key, value in land_use_classes.items() if value == selected_land_use][0]
         filtered_gdf = gdf[gdf['land_use'] == selected_land_use_value]
-        
-elif selected_file == "NDVI":
-    # Replace numeric values with names in the 'label' column for NDVI
-    if 'label' in gdf.columns:
-        # Remove rows where 'label' is 3
-        gdf = gdf[gdf['label'] != 3]
-        
-        # Replace values with names: 1 -> "Dense Forest", 2 -> "Sparse Grass"
-        label_mapping = {
-            1: "Dense Forest",
-            2: "Sparse Grass"
-        }
-        gdf['label'] = gdf['label'].map(label_mapping).fillna(gdf['label'])
 
-        # Filter by the 'label' column for NDVI
-        unique_labels = gdf['label'].unique()
-        selected_label = st.sidebar.selectbox(
-            "Filter by NDVI Label",
-            list(unique_labels) + ["All"]
-        )
-        
-        if selected_label == "All":
-            filtered_gdf = gdf
-        else:
-            filtered_gdf = gdf[gdf['label'] == selected_label]
+elif selected_file == "NDVI":
+    # Replace NDVI values with labels and filter
+    label_mapping = {
+        1: "Dense Forest",
+        2: "Sparse Grass"
+    }
+    gdf = gdf[gdf['label'] != 3]  # Remove value 3
+    gdf['label'] = gdf['label'].map(label_mapping).fillna(gdf['label'])
+    unique_labels = gdf['label'].unique()
+    selected_label = st.sidebar.selectbox(
+        "Filter by NDVI Label",
+        list(unique_labels) + ["All"]
+    )
+    
+    if selected_label == "All":
+        filtered_gdf = gdf
     else:
-        filtered_gdf = gdf  # If 'label' column doesn't exist, display the whole dataset
+        filtered_gdf = gdf[gdf['label'] == selected_label]
 
 elif selected_file == "Roads":
-    # Filter by highway types (road types)
-    if 'highway' in gdf.columns:
-        highway_types = gdf['highway'].unique()
-        selected_highway = st.sidebar.selectbox(
-            "Filter by Road Type (Highway)",
-            list(highway_types) + ["All"]
-        )
-        
-        if selected_highway == "All":
-            filtered_gdf = gdf
-        else:
-            filtered_gdf = gdf[gdf['highway'] == selected_highway]
-    else:
+    # Filter by road type (highway)
+    highway_types = gdf['highway'].unique()
+    selected_highway = st.sidebar.selectbox(
+        "Filter by Road Type",
+        list(highway_types) + ["All"]
+    )
+    
+    if selected_highway == "All":
         filtered_gdf = gdf
+    else:
+        filtered_gdf = gdf[gdf['highway'] == selected_highway]
 
-else:
-    filtered_gdf = gdf
+# Create the map
+m = folium.Map(location=[gdf.geometry.centroid.y.mean(), gdf.geometry.centroid.x.mean()], zoom_start=12)
 
-# Sidebar warning message for no data
-if filtered_gdf.empty:
-    st.sidebar.warning(f"No data available for the selected filter in the '{selected_file}' dataset. Please try a different combination.")
-else:
-    st.sidebar.success(f"Displaying data from the '{selected_file}' dataset.")
+# Add the filtered GeoJSON data to the map
+folium.GeoJson(filtered_gdf, name=selected_file).add_to(m)
 
-# Create a Folium map centered around the filtered data
-m = folium.Map(location=[filtered_gdf.geometry.centroid.y.mean(), filtered_gdf.geometry.centroid.x.mean()],
-               zoom_start=12)
-
-# Add the selected layer with details shown in the sidebar
-def add_layer_with_details(gdf, layer_name):
-    """Function to add layer and display details of each point or polygon in the sidebar."""
-    for idx, row in gdf.iterrows():
-        feature_info = f"<strong>{layer_name}</strong><br>"
-        for column in row.index:
-            # Display feature details in the sidebar
-            feature_info += f"<strong>{column}:</strong> {row[column]}<br>"
-        
-        # Show the feature's details in the sidebar
-        st.sidebar.markdown(f"### Feature Details ({idx})")
-        st.sidebar.markdown(feature_info)
-
-        folium.GeoJson(
-            row['geometry'],
-            name=layer_name,
-            style_function=lambda x: {'color': 'blue'}  # Change this color if needed
-        ).add_to(m)
-
-# If "Show All Layers" is selected, add all layers with specific colors
-if show_all_layers:
-    add_layer_with_details(gpd.read_file(data_files["Urban Density"]), "Urban Density")
-    add_layer_with_details(gpd.read_file(data_files["LCZ"]), "LCZ")
-    add_layer_with_details(gpd.read_file(data_files["Land Use"]), "Land Use")
-    add_layer_with_details(gpd.read_file(data_files["NDVI"]), "NDVI")
-    add_layer_with_details(gpd.read_file(data_files["Roads"]), "Roads")
-else:
-    # Add only the selected dataset to the map with details in sidebar
-    if selected_file == "Urban Density":
-        add_layer_with_details(filtered_gdf, "Urban Density")
-    elif selected_file == "LCZ":
-        add_layer_with_details(filtered_gdf, "LCZ")
-    elif selected_file == "Land Use":
-        add_layer_with_details(filtered_gdf, "Land Use")
-    elif selected_file == "NDVI":
-        add_layer_with_details(filtered_gdf, "NDVI")
-    elif selected_file == "Roads":
-        add_layer_with_details(filtered_gdf, "Roads")
-
-# Add a layer control to toggle layers on/off
+# Add a layer control
 folium.LayerControl().add_to(m)
 
-# Show the map in Streamlit
+# Display the map in Streamlit
 st_folium(m, width=700, height=500)
 
-# Display the filtered dataset as a table below the map
+# Display the filtered dataset in a table below the map
 st.write(f"### {selected_file} Dataset")
-st.dataframe(filtered_gdf)  # Show the filtered data as a table below the map
+st.dataframe(filtered_gdf)
 
 
 
