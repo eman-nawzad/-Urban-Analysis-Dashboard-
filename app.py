@@ -105,21 +105,21 @@ def add_layer(gdf, layer_name, color=None):
 
 # If "Show All Layers" is selected, add all layers with specific colors
 if show_all_layers:
-    add_layer(gpd.read_file(data_files["Urban Density"]), "Urban Density", color="blue")
-    add_layer(gpd.read_file(data_files["LCZ"]), "LCZ", color="orange")
-    add_layer(gpd.read_file(data_files["Land Use"]), "Land Use", color="green")
-    add_layer(gpd.read_file(data_files["NDVI"]), "NDVI", color="purple")
+    add_layer(gpd.read_file(data_files["Urban Density"]), "Urban Density", color="yellow")
+    add_layer(gpd.read_file(data_files["LCZ"]), "LCZ", color="Blue")
+    add_layer(gpd.read_file(data_files["Land Use"]), "Land Use", color=" Lime Green ")
+    add_layer(gpd.read_file(data_files["NDVI"]), "NDVI", color="green")
     add_layer(gpd.read_file(data_files["Roads"]), "Roads", color="red")
 else:
     # Add only the selected dataset to the map
     if selected_file == "Urban Density":
-        add_layer(filtered_gdf, "Urban Density", color="green")
+        add_layer(filtered_gdf, "Urban Density", color=" yellow ")
     elif selected_file == "LCZ":
-        add_layer(filtered_gdf, "LCZ", color="orange")
+        add_layer(filtered_gdf, "LCZ", color="Blue")
     elif selected_file == "Land Use":
-        add_layer(filtered_gdf, "Land Use", color="blue")
+        add_layer(filtered_gdf, "Land Use", color=" Lime Green ")
     elif selected_file == "NDVI":
-        add_layer(filtered_gdf, "NDVI", color="purple")
+        add_layer(filtered_gdf, "NDVI", color="green")
     elif selected_file == "Roads":
         add_layer(filtered_gdf, "Roads", color="red")
 
