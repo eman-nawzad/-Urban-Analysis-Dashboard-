@@ -92,6 +92,9 @@ elif selected_file == "Land Use":
 elif selected_file == "NDVI":
     # Replace numeric values with names in the 'label' column for NDVI
     if 'label' in gdf.columns:
+        # Remove rows where 'label' is 3
+        gdf = gdf[gdf['label'] != 3]
+        
         # Replace values with names: 1 -> "Dense Forest", 2 -> "Sparse Grass"
         label_mapping = {
             1: "Dense Forest",
@@ -155,7 +158,7 @@ if show_all_layers:
     add_layer(gpd.read_file(data_files["Urban Density"]), "Urban Density", color="black")
     add_layer(gpd.read_file(data_files["LCZ"]), "LCZ", color="blue")
     add_layer(gpd.read_file(data_files["Land Use"]), "Land Use", color="orange")
-    add_layer(gpd.read_file(data_files["NDVI"]), "NDVI", color="green")
+    add_layer(gpd.read_file(data_files["NDVI"]), "NDVI", color="light green")
     add_layer(gpd.read_file(data_files["Roads"]), "Roads", color="red")
 else:
     # Add only the selected dataset to the map
@@ -166,7 +169,7 @@ else:
     elif selected_file == "Land Use":
         add_layer(filtered_gdf, "Land Use", color="orange")
     elif selected_file == "NDVI":
-        add_layer(filtered_gdf, "NDVI", color="green")
+        add_layer(filtered_gdf, "NDVI", color="light green")
     elif selected_file == "Roads":
         add_layer(filtered_gdf, "Roads", color="red")
 
@@ -179,6 +182,7 @@ st_folium(m, width=700, height=500)
 # Display the filtered dataset as a table below the map
 st.write(f"### {selected_file} Dataset")
 st.dataframe(filtered_gdf)  # Show the filtered data as a table below the map
+
 
 
 
