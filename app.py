@@ -71,21 +71,25 @@ elif selected_file == "LCZ_Zones":
         filtered_gdf = gdf[gdf['LCZ_Filter'] == selected_lcz_value]
 
 elif selected_file == "Land Use":
-    # Example: Filter by land use class, keeping only values 3, 4, 5, and 6
-    if 'land_use' in gdf.columns:
-        land_use_classes = [3, 4, 5, 6]  # Only keep these land use values
-        selected_land_use = st.sidebar.selectbox(
-            "Filter by Land Use Class",
-            land_use_classes + ["All"]
-        )
-        
-        if selected_land_use == "All":
-            filtered_gdf = gdf[gdf['land_use'].isin(land_use_classes)]
-        else:
-            filtered_gdf = gdf[gdf['land_use'] == selected_land_use]
+    # Replace land use class values with their corresponding names
+    land_use_classes = {
+        3: "Croplands",
+        4: "Urban",
+        5: "Water",
+        6: "Barren"
+    }
+    
+    selected_land_use = st.sidebar.selectbox(
+        "Filter by Land Use Class",
+        list(land_use_classes.values()) + ["All"]
+    )
+    
+    if selected_land_use == "All":
+        filtered_gdf = gdf[gdf['land_use'].isin(land_use_classes.keys())]
     else:
-        filtered_gdf = gdf
-
+        selected_land_use_value = [key for key, value in land_use_classes.items() if value == selected_land_use][0]
+        filtered_gdf = gdf[gdf['land_use'] == selected_land_use_value]
+        
 elif selected_file == "NDVI":
     # Example: Filter by NDVI values (if applicable)
     if 'NDVI' in gdf.columns:
@@ -165,6 +169,7 @@ st_folium(m, width=700, height=500)
 # Display the filtered dataset as a table below the map
 st.write(f"### {selected_file} Dataset")
 st.dataframe(filtered_gdf)  # Show the filtered data as a table below the map
+
 
 
 
