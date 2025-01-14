@@ -6,12 +6,6 @@ import geopandas as gpd
 # Load the GeoJSON file
 gdf = gpd.read_file('data/UrbanDensity.geojson')
 
-# Check the columns in the GeoDataFrame to find the correct label column
-st.write("Available columns:", gdf.columns)
-
-# Check the unique values in the label column
-st.write("Unique label values:", gdf['label'].unique())
-
 # Create a dictionary for density classes
 density_classes = {
     "Very Low Density (<10%)": 1,
