@@ -41,6 +41,11 @@ folium.GeoJson(filtered_gdf).add_to(m)
 # Show the map in Streamlit
 st_folium(m, width=700, height=500)
 
+# Show the filtered table data
+st.subheader("Filtered Urban Density Data")
+st.dataframe(filtered_gdf)
+
+
 
 
 
