@@ -145,33 +145,42 @@ else:
 m = folium.Map(location=[filtered_gdf.geometry.centroid.y.mean(), filtered_gdf.geometry.centroid.x.mean()],
                zoom_start=12)
 
-# Add the selected layer
-def add_layer(gdf, layer_name, color=None):
-    """Function to add a layer with a specific color if provided."""
-    if color:
-        folium.GeoJson(gdf, name=layer_name, style_function=lambda x: {'color': color}).add_to(m)
-    else:
-        folium.GeoJson(gdf, name=layer_name).add_to(m)
+# Add the selected layer with tooltip details
+def add_layer_with_tooltip(gdf, layer_name, color=None):
+    """Function to add a layer with a specific color if provided and show details in tooltip."""
+    for idx, row in gdf.iterrows():
+        # Set the color for the polygon or point
+        popup_content = f"<strong>{layer_name}</strong><br>"
+        for column in row.index:
+            # Customize popup content to display more attributes
+            popup_content += f"<strong>{column}:</strong> {row[column]}<br>"
+        
+        folium.GeoJson(
+            row['geometry'],
+            name=layer_name,
+            style_function=lambda x: {'color': color} if color else {},
+            tooltip=folium.Tooltip(popup_content)
+        ).add_to(m)
 
 # If "Show All Layers" is selected, add all layers with specific colors
 if show_all_layers:
-    add_layer(gpd.read_file(data_files["Urban Density"]), "Urban Density", color="black")
-    add_layer(gpd.read_file(data_files["LCZ"]), "LCZ", color="blue")
-    add_layer(gpd.read_file(data_files["Land Use"]), "Land Use", color="orange")
-    add_layer(gpd.read_file(data_files["NDVI"]), "NDVI", color="green")
-    add_layer(gpd.read_file(data_files["Roads"]), "Roads", color="red")
+    add_layer_with_tooltip(gpd.read_file(data_files["Urban Density"]), "Urban Density", color="black")
+    add_layer_with_tooltip(gpd.read_file(data_files["LCZ"]), "LCZ", color="blue")
+    add_layer_with_tooltip(gpd.read_file(data_files["Land Use"]), "Land Use", color="orange")
+    add_layer_with_tooltip(gpd.read_file(data_files["NDVI"]), "NDVI", color="green")
+    add_layer_with_tooltip(gpd.read_file(data_files["Roads"]), "Roads", color="red")
 else:
-    # Add only the selected dataset to the map
+    # Add only the selected dataset to the map with details
     if selected_file == "Urban Density":
-        add_layer(filtered_gdf, "Urban Density", color="black")
+        add_layer_with_tooltip(filtered_gdf, "Urban Density", color="black")
     elif selected_file == "LCZ":
-        add_layer(filtered_gdf, "LCZ", color="blue")
+        add_layer_with_tooltip(filtered_gdf, "LCZ", color="blue")
     elif selected_file == "Land Use":
-        add_layer(filtered_gdf, "Land Use", color="orange")
+        add_layer_with_tooltip(filtered_gdf, "Land Use", color="orange")
     elif selected_file == "NDVI":
-        add_layer(filtered_gdf, "NDVI", color="green")
+        add_layer_with_tooltip(filtered_gdf, "NDVI", color="green")
     elif selected_file == "Roads":
-        add_layer(filtered_gdf, "Roads", color="red")
+        add_layer_with_tooltip(filtered_gdf, "Roads", color="red")
 
 # Add a layer control to toggle layers on/off
 folium.LayerControl().add_to(m)
@@ -182,6 +191,7 @@ st_folium(m, width=700, height=500)
 # Display the filtered dataset as a table below the map
 st.write(f"### {selected_file} Dataset")
 st.dataframe(filtered_gdf)  # Show the filtered data as a table below the map
+
 
 
 
