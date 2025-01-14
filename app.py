@@ -63,12 +63,13 @@ elif selected_file == "LCZ":
         filtered_gdf = gdf[gdf['LCZ_Filter'] == selected_lcz_value]
 
 elif selected_file == "Land Use":
-    # Land use classes
+    # Filter Land Use for 2021
     land_use_classes = {
         3: "Croplands",
         4: "Urban",
         6: "Barren"
     }
+    st.sidebar.markdown("#### Land Use Data (2021)")
     selected_land_use = st.sidebar.selectbox(
         "Filter by Land Use Class",
         list(land_use_classes.values()) + ["All"]
@@ -81,11 +82,12 @@ elif selected_file == "Land Use":
         filtered_gdf = gdf[gdf['land_use'] == selected_land_use_value]
 
 elif selected_file == "NDVI":
-    # Replace NDVI values with labels and filter
+    # Filter NDVI data for 2021
     label_mapping = {
         1: "Dense Forest",
         2: "Sparse Grass"
     }
+    st.sidebar.markdown("#### NDVI Data (2021)")
     gdf = gdf[gdf['label'] != 3]  # Remove value 3
     gdf['label'] = gdf['label'].map(label_mapping).fillna(gdf['label'])
     unique_labels = gdf['label'].unique()
@@ -118,8 +120,6 @@ if filtered_gdf.empty:
 else:
     st.sidebar.success(f"Displaying data from the '{selected_file}' dataset.")
 
-
-
 # Create the map
 m = folium.Map(location=[gdf.geometry.centroid.y.mean(), gdf.geometry.centroid.x.mean()], zoom_start=12)
 
@@ -135,6 +135,7 @@ st_folium(m, width=700, height=500)
 # Display the filtered dataset in a table below the map
 st.write(f"### {selected_file} Dataset")
 st.dataframe(filtered_gdf)
+
 
 
 
