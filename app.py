@@ -17,14 +17,19 @@ density_classes = {
     "High Density (>70%)": 4
 }
 
-# Dropdown to select the density class
-selected_class = st.selectbox(
-    "Select Urban Density Class to View",
+# Sidebar for selecting multiple density classes
+st.sidebar.title("Select Urban Density Classes")
+selected_classes = st.sidebar.multiselect(
+    "Choose Urban Density Classes to View",
     list(density_classes.keys())
 )
 
-# Filter the data based on the selected class
-filtered_gdf = gdf[gdf['density_class'] == density_classes[selected_class]]
+# Filter the data based on selected classes
+if selected_classes:
+    selected_class_values = [density_classes[cls] for cls in selected_classes]
+    filtered_gdf = gdf[gdf['density_class'].isin(selected_class_values)]
+else:
+    filtered_gdf = gdf  # If no class selected, show all data
 
 # Create a Folium map centered around the filtered data
 m = folium.Map(location=[filtered_gdf.geometry.centroid.y.mean(), filtered_gdf.geometry.centroid.x.mean()],
@@ -35,6 +40,7 @@ folium.GeoJson(filtered_gdf).add_to(m)
 
 # Show the map in Streamlit
 st_folium(m, width=700, height=500)
+
 
 
 
