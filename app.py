@@ -38,10 +38,14 @@ if selected_file == "Urban Density":
     }
     selected_density = st.sidebar.selectbox(
         "Filter by Urban Density Class",
-        list(density_classes.keys())
+        list(density_classes.keys()) + ["All"]
     )
-    selected_density_value = density_classes[selected_density]
-    filtered_gdf = gdf[gdf['label'] == selected_density_value]
+    
+    if selected_density == "All":
+        filtered_gdf = gdf
+    else:
+        selected_density_value = density_classes[selected_density]
+        filtered_gdf = gdf[gdf['label'] == selected_density_value]
 
 elif selected_file == "LCZ":
     # Map the LCZ class names to their corresponding numerical values
@@ -51,17 +55,20 @@ elif selected_file == "LCZ":
         "Industrial Zones": 8
     }
     
-    # Sidebar selectbox now displays the class names
+    # Sidebar selectbox now displays the class names plus "All" option
     selected_lcz_class = st.sidebar.selectbox(
         "Filter by LCZ Class",
-        list(lcz_classes.keys())
+        list(lcz_classes.keys()) + ["All"]
     )
     
-    # Get the numerical value for the selected LCZ class
-    selected_lcz_value = lcz_classes[selected_lcz_class]
-    
-    # Filter by the corresponding numerical value in 'LCZ_Filter' column
-    filtered_gdf = gdf[gdf['LCZ_Filter'] == selected_lcz_value]
+    if selected_lcz_class == "All":
+        filtered_gdf = gdf
+    else:
+        # Get the numerical value for the selected LCZ class
+        selected_lcz_value = lcz_classes[selected_lcz_class]
+        
+        # Filter by the corresponding numerical value in 'LCZ_Filter' column
+        filtered_gdf = gdf[gdf['LCZ_Filter'] == selected_lcz_value]
 
 elif selected_file == "Land Use":
     # Example: Filter by land use class
@@ -69,9 +76,13 @@ elif selected_file == "Land Use":
         land_use_classes = gdf['land_use'].unique()
         selected_land_use = st.sidebar.selectbox(
             "Filter by Land Use Class",
-            list(land_use_classes)
+            list(land_use_classes) + ["All"]
         )
-        filtered_gdf = gdf[gdf['land_use'] == selected_land_use]
+        
+        if selected_land_use == "All":
+            filtered_gdf = gdf
+        else:
+            filtered_gdf = gdf[gdf['land_use'] == selected_land_use]
     else:
         filtered_gdf = gdf
 
@@ -94,9 +105,13 @@ elif selected_file == "Roads":
         highway_types = gdf['highway'].unique()
         selected_highway = st.sidebar.selectbox(
             "Filter by Road Type (Highway)",
-            list(highway_types)
+            list(highway_types) + ["All"]
         )
-        filtered_gdf = gdf[gdf['highway'] == selected_highway]
+        
+        if selected_highway == "All":
+            filtered_gdf = gdf
+        else:
+            filtered_gdf = gdf[gdf['highway'] == selected_highway]
     else:
         filtered_gdf = gdf
 
@@ -150,6 +165,7 @@ st_folium(m, width=700, height=500)
 # Display the filtered dataset as a table below the map
 st.write(f"### {selected_file} Dataset")
 st.dataframe(filtered_gdf)  # Show the filtered data as a table below the map
+
 
 
 
