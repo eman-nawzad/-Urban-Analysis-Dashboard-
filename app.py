@@ -34,11 +34,15 @@ if selected_classes:
 else:
     filtered_gdf = gdf  # If no class selected, show all data
 
-# Show warning if no data is found after filtering
+# Show instruction if no data is available for the selected density class
 if filtered_gdf.empty:
-    st.warning("No data available for the selected density class.")
+    st.sidebar.warning("No polygons available for the selected density class(es). Please try a different combination.")
 else:
-    # Create a Folium map centered around the filtered data
+    # Show a success message when data is available
+    st.sidebar.success("Displaying polygons for the selected density class(es).")
+
+# Create a Folium map centered around the filtered data
+if not filtered_gdf.empty:
     m = folium.Map(location=[filtered_gdf.geometry.centroid.y.mean(), filtered_gdf.geometry.centroid.x.mean()],
                    zoom_start=12)
     folium.GeoJson(filtered_gdf).add_to(m)
@@ -47,6 +51,7 @@ else:
 # Show the filtered table data
 st.subheader("Filtered Urban Density Data")
 st.dataframe(filtered_gdf)
+
 
 
 
