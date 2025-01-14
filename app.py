@@ -132,14 +132,17 @@ else:
 m = folium.Map(location=[filtered_gdf.geometry.centroid.y.mean(), filtered_gdf.geometry.centroid.x.mean()],
                zoom_start=12)
 
-# Define the style functions for different datasets
-def get_style_function(dataset_name):
-    if dataset_name == "NDVI":
-        return lambda x: {'color': 'green', 'weight': 2, 'opacity': 1}
-    elif dataset_name == "Roads":
-        return lambda x: {'color': 'red', 'weight': 2, 'opacity': 1}
-    else:
-        return lambda x: {'color': 'blue', 'weight': 2, 'opacity': 1}
+# Function to style features and add hover information
+def style_function(feature):
+    return {
+        'color': 'blue',
+        'weight': 2,
+        'opacity': 1
+    }
+
+def on_hover(feature):
+    properties = feature['properties']
+    return folium.Tooltip(f"Label: {properties.get('label', 'N/A')}, Land Use: {properties.get('land_use', 'N/A')}").add_to(folium.Marker([feature['geometry']['coordinates'][1], feature['geometry']['coordinates'][0]]))
 
 # Add layers based on the "Show All Layers" checkbox
 if show_all_layers:
@@ -149,16 +152,16 @@ if show_all_layers:
         folium.GeoJson(
             layer_gdf,
             name=file_name,
-            style_function=get_style_function(file_name),
-            tooltip=folium.GeoJsonTooltip(fields=["name", "population"], aliases=["Name", "Population"])  # Example tooltip
+            style_function=style_function,
+            tooltip=on_hover
         ).add_to(m)
 else:
     # Add only the selected dataset to the map
     folium.GeoJson(
         filtered_gdf,
         name=selected_file,
-        style_function=get_style_function(selected_file),
-        tooltip=folium.GeoJsonTooltip(fields=["name", "label"], aliases=["Name", "Label"])  # Example tooltip
+        style_function=style_function,
+        tooltip=on_hover
     ).add_to(m)
 
 # Add a layer control to toggle layers on/off
@@ -170,6 +173,7 @@ st_folium(m, width=700, height=500)
 # Display the filtered dataset as a table below the map
 st.write(f"### {selected_file} Dataset")
 st.dataframe(filtered_gdf)
+
 
 
 
