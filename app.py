@@ -44,16 +44,16 @@ if selected_file == "Urban Density":
     filtered_gdf = gdf[gdf['label'] == selected_density_value]
 
 elif selected_file == "LCZ":
-    # Check if 'LCZ_filter' exists in the dataset
+    # Filter by LCZ class for specific zones (Compact High-Rise, Open Low-Rise, Industrial Zones)
     if 'LCZ_filter' in gdf.columns:
-        lcz_classes = gdf['LCZ_filter'].unique()  # Get all unique values in 'LCZ_filter'
-        selected_lcz = st.sidebar.selectbox(
-            "Filter by LCZ Class",
-            list(lcz_classes)
+        lcz_filters = gdf['LCZ_filter'].unique()
+        selected_lcz_filter = st.sidebar.selectbox(
+            "Filter by LCZ Filter",
+            list(lcz_filters)
         )
-        filtered_gdf = gdf[gdf['LCZ_filter'] == selected_lcz]  # Filter using 'LCZ_filter'
+        filtered_gdf = gdf[gdf['LCZ_filter'] == selected_lcz_filter]
     else:
-        filtered_gdf = gdf  # No filtering if 'LCZ_filter' column is missing
+        filtered_gdf = gdf
 
 elif selected_file == "Land Use":
     # Example: Filter by land use class
@@ -142,6 +142,7 @@ st_folium(m, width=700, height=500)
 # Display the filtered dataset as a table below the map
 st.write(f"### {selected_file} Dataset")
 st.dataframe(filtered_gdf)  # Show the filtered data as a table below the map
+
 
 
 
