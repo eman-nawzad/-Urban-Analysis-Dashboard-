@@ -149,14 +149,16 @@ if show_all_layers:
         folium.GeoJson(
             layer_gdf,
             name=file_name,
-            style_function=get_style_function(file_name)
+            style_function=get_style_function(file_name),
+            tooltip=folium.GeoJsonTooltip(fields=["name", "population"], aliases=["Name", "Population"])  # Example tooltip
         ).add_to(m)
 else:
     # Add only the selected dataset to the map
     folium.GeoJson(
         filtered_gdf,
         name=selected_file,
-        style_function=get_style_function(selected_file)
+        style_function=get_style_function(selected_file),
+        tooltip=folium.GeoJsonTooltip(fields=["name", "label"], aliases=["Name", "Label"])  # Example tooltip
     ).add_to(m)
 
 # Add a layer control to toggle layers on/off
@@ -168,6 +170,7 @@ st_folium(m, width=700, height=500)
 # Display the filtered dataset as a table below the map
 st.write(f"### {selected_file} Dataset")
 st.dataframe(filtered_gdf)
+
 
 
 
