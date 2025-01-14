@@ -43,8 +43,6 @@ if selected_file == "Urban Density":
     else:
         selected_density_value = density_classes[selected_density]
         filtered_gdf = gdf[gdf['label'] == selected_density_value]
-        if filtered_gdf.empty:
-            st.sidebar.warning(f"No data available for class: {selected_density}")
 
 elif selected_file == "LCZ":
     # Map LCZ classes
@@ -63,8 +61,6 @@ elif selected_file == "LCZ":
     else:
         selected_lcz_value = lcz_classes[selected_lcz_class]
         filtered_gdf = gdf[gdf['LCZ_Filter'] == selected_lcz_value]
-        if filtered_gdf.empty:
-            st.sidebar.warning(f"No data available for class: {selected_lcz_class}")
 
 elif selected_file == "Land Use":
     # Land use classes
@@ -83,8 +79,6 @@ elif selected_file == "Land Use":
     else:
         selected_land_use_value = [key for key, value in land_use_classes.items() if value == selected_land_use][0]
         filtered_gdf = gdf[gdf['land_use'] == selected_land_use_value]
-        if filtered_gdf.empty:
-            st.sidebar.warning(f"No data available for class: {selected_land_use}")
 
 elif selected_file == "NDVI":
     # Replace NDVI values with labels and filter
@@ -104,8 +98,6 @@ elif selected_file == "NDVI":
         filtered_gdf = gdf
     else:
         filtered_gdf = gdf[gdf['label'] == selected_label]
-        if filtered_gdf.empty:
-            st.sidebar.warning(f"No data available for label: {selected_label}")
 
 elif selected_file == "Roads":
     # Filter by road type (highway)
@@ -119,8 +111,6 @@ elif selected_file == "Roads":
         filtered_gdf = gdf
     else:
         filtered_gdf = gdf[gdf['highway'] == selected_highway]
-        if filtered_gdf.empty:
-            st.sidebar.warning(f"No data available for road type: {selected_highway}")
 
 # Create the map
 m = folium.Map(location=[gdf.geometry.centroid.y.mean(), gdf.geometry.centroid.x.mean()], zoom_start=12)
