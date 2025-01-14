@@ -132,6 +132,15 @@ else:
 m = folium.Map(location=[filtered_gdf.geometry.centroid.y.mean(), filtered_gdf.geometry.centroid.x.mean()],
                zoom_start=12)
 
+# Define the style functions for different datasets
+def get_style_function(dataset_name):
+    if dataset_name == "NDVI":
+        return lambda x: {'color': 'green', 'weight': 2, 'opacity': 1}
+    elif dataset_name == "Roads":
+        return lambda x: {'color': 'red', 'weight': 2, 'opacity': 1}
+    else:
+        return lambda x: {'color': 'blue', 'weight': 2, 'opacity': 1}
+
 # Add layers based on the "Show All Layers" checkbox
 if show_all_layers:
     # Show all layers
@@ -140,14 +149,14 @@ if show_all_layers:
         folium.GeoJson(
             layer_gdf,
             name=file_name,
-            style_function=lambda x: {'color': 'blue'}
+            style_function=get_style_function(file_name)
         ).add_to(m)
 else:
     # Add only the selected dataset to the map
     folium.GeoJson(
         filtered_gdf,
         name=selected_file,
-        style_function=lambda x: {'color': 'blue'}
+        style_function=get_style_function(selected_file)
     ).add_to(m)
 
 # Add a layer control to toggle layers on/off
