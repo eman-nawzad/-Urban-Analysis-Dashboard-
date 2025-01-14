@@ -75,56 +75,42 @@ else:
 # Create map
 m = folium.Map(location=[filtered_gdf.geometry.centroid.y.mean(), filtered_gdf.geometry.centroid.x.mean()], zoom_start=12)
 
-# Add layers
-def get_style_function(dataset_name):
-    if dataset_name == "NDVI":
-        return lambda x: {"color": "green", "weight": 1}
-    elif dataset_name == "Roads":
-        return lambda x: {"color": "red", "weight": 1}
+# Function to generate popup content based on the class and dataset
+def generate_popup(row):
+    if selected_file == "Urban Density":
+        return f"Urban Density: {row['label']}"
+    elif selected_file == "Land Use":
+        return f"Land Use: {row['land_use']}"
+    elif selected_file == "Roads":
+        return f"Road Type: {row['highway']}"
+    elif selected_file == "LCZ":
+        return f"LCZ Zone: {row['LCZ_Filter']}"
+    elif selected_file == "NDVI":
+        return f"NDVI Class: {row['label']}"
     else:
-        return lambda x: {"color": "blue", "weight": 1}
+        return "No additional information available"
 
+# Add GeoJSON layer with popups
+def add_geojson_layer(gdf, map_obj):
+    for _, row in gdf.iterrows():
+        geo_json = folium.GeoJson(row['geometry'])
+        popup = folium.Popup(generate_popup(row), max_width=300)
+        geo_json.add_child(popup)
+        geo_json.add_to(map_obj)
+
+# Add layers
 if show_all_layers:
     for file_name, file_path in data_files.items():
         layer_gdf = gpd.read_file(file_path)
-        folium.GeoJson(
-            layer_gdf,
-            name=file_name,
-            style_function=get_style_function(file_name)
-        ).add_to(m)
+        add_geojson_layer(layer_gdf, m)
 else:
-    folium.GeoJson(
-        filtered_gdf,
-        name=selected_file,
-        style_function=get_style_function(selected_file)
-    ).add_to(m)
+    add_geojson_layer(filtered_gdf, m)
 
+# Add Layer Control
 folium.LayerControl().add_to(m)
 
 # Display the map
 st_folium(m, width=700, height=500)
-
-# Display the attribute table with tooltips
-st.subheader(f"Attribute Table: {selected_file}")
-
-# Extract columns for display and tooltips based on selected dataset
-if selected_file == "Urban Density":
-    tooltip_column = "label"
-elif selected_file == "Land Use":
-    tooltip_column = "land_use"
-elif selected_file == "Roads":
-    tooltip_column = "highway"
-else:
-    tooltip_column = None
-
-# Prepare tooltip text if applicable
-if tooltip_column and tooltip_column in filtered_gdf.columns:
-    hover_texts = filtered_gdf.apply(lambda row: f"{tooltip_column}: {row[tooltip_column]}", axis=1)
-else:
-    hover_texts = ["No tooltip available"] * len(filtered_gdf)
-
-# Display table using Streamlit's built-in functionality
-st.write(filtered_gdf[["geometry"] + [col for col in filtered_gdf.columns if col != "geometry"]])
 
 
 
