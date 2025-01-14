@@ -75,7 +75,6 @@ elif selected_file == "Land Use":
     land_use_classes = {
         3: "Croplands",
         4: "Urban",
-        5: "Water",
         6: "Barren"
     }
     
