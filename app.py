@@ -122,15 +122,12 @@ elif selected_file == "Roads":
 else:
     filtered_gdf = gdf
 
-# Sidebar warning message for no data
-if filtered_gdf.empty:
-    st.sidebar.warning(f"No data available for the selected class in the '{selected_file}' dataset. Please try a different selection.")
-else:
-    st.sidebar.success(f"Displaying data from the '{selected_file}' dataset.")
-
 # Create a Folium map centered around the filtered data
-m = folium.Map(location=[filtered_gdf.geometry.centroid.y.mean(), filtered_gdf.geometry.centroid.x.mean()],
-               zoom_start=12)
+if not filtered_gdf.empty:
+    m = folium.Map(location=[filtered_gdf.geometry.centroid.y.mean(), filtered_gdf.geometry.centroid.x.mean()],
+                   zoom_start=12)
+else:
+    m = folium.Map(location=[0, 0], zoom_start=2)
 
 # Define the style functions for different datasets
 def get_style_function(dataset_name):
@@ -143,23 +140,28 @@ def get_style_function(dataset_name):
 
 # Add layers based on the "Show All Layers" checkbox
 if show_all_layers:
-    # Show all layers
     for file_name, file_path in data_files.items():
         layer_gdf = gpd.read_file(file_path)
         folium.GeoJson(
             layer_gdf,
             name=file_name,
             style_function=get_style_function(file_name),
-            tooltip=folium.features.GeoJsonTooltip(fields=layer_gdf.columns, aliases=layer_gdf.columns)
+            tooltip=folium.features.GeoJsonTooltip(
+                fields=['label', 'description'],  # Adjust fields as necessary
+                aliases=['Label', 'Description']
+            )
         ).add_to(m)
 else:
-    # Add only the selected dataset to the map
-    folium.GeoJson(
-        filtered_gdf,
-        name=selected_file,
-        style_function=get_style_function(selected_file),
-        tooltip=folium.features.GeoJsonTooltip(fields=filtered_gdf.columns, aliases=filtered_gdf.columns)
-    ).add_to(m)
+    if not filtered_gdf.empty:
+        folium.GeoJson(
+            filtered_gdf,
+            name=selected_file,
+            style_function=get_style_function(selected_file),
+            tooltip=folium.features.GeoJsonTooltip(
+                fields=['label', 'description'],  # Adjust fields as necessary
+                aliases=['Label', 'Description']
+            )
+        ).add_to(m)
 
 # Add a layer control to toggle layers on/off
 folium.LayerControl().add_to(m)
@@ -167,9 +169,6 @@ folium.LayerControl().add_to(m)
 # Show the map in Streamlit
 st_folium(m, width=700, height=500)
 
-# Display the filtered dataset as a table below the map
-st.write(f"### {selected_file} Dataset")
-st.dataframe(filtered_gdf)
 
 
 
