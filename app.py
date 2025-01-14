@@ -45,17 +45,17 @@ if selected_file == "Urban Density":
 
 elif selected_file == "LCZ":
     # Filter by specific LCZ classes (Compact High-Rise, Open Low-Rise, Industrial Zones)
-    lcz_classes = {
+    lcz_filter = {
         "Compact High-Rise": 1,
         "Open Low-Rise": 6,
         "Industrial Zones": 8
     }
     selected_lcz = st.sidebar.selectbox(
-        "Filter by LCZ Class",
-        list(lcz_classes.keys())
+        "Filter by LCZ filter",
+        list(lcz_filter.keys())
     )
-    selected_lcz_value = lcz_classes[selected_lcz]
-    filtered_gdf = gdf[gdf['lcz_class'] == selected_lcz_value]
+    selected_lcz_value = lcz_filter[selected_lcz]
+    filtered_gdf = gdf[gdf['lcz_filter'] == selected_lcz_value]
 
 elif selected_file == "Land Use":
     # Example: Filter by land use class
