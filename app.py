@@ -144,45 +144,50 @@ def style_function(feature):
 def add_tooltip(geojson):
     # Add custom tooltips based on columns relevant to each dataset
     if selected_file == "Urban Density":
-        geojson.add_child(
-            folium.features.GeoJsonTooltip(
-                fields=["label"],
-                aliases=["Urban Density Class"],
-                localize=True
+        if 'label' in geojson.data['features'][0]['properties']:
+            geojson.add_child(
+                folium.features.GeoJsonTooltip(
+                    fields=["label"],
+                    aliases=["Urban Density Class"],
+                    localize=True
+                )
             )
-        )
     elif selected_file == "LCZ":
-        geojson.add_child(
-            folium.features.GeoJsonTooltip(
-                fields=["LCZ_Filter", "zone_type"],
-                aliases=["LCZ Class", "Zone Type"],
-                localize=True
+        if 'LCZ_Filter' in geojson.data['features'][0]['properties']:
+            geojson.add_child(
+                folium.features.GeoJsonTooltip(
+                    fields=["LCZ_Filter", "zone_type"],
+                    aliases=["LCZ Class", "Zone Type"],
+                    localize=True
+                )
             )
-        )
     elif selected_file == "Land Use":
-        geojson.add_child(
-            folium.features.GeoJsonTooltip(
-                fields=["land_use", "area_type"],
-                aliases=["Land Use Class", "Area Type"],
-                localize=True
+        if 'land_use' in geojson.data['features'][0]['properties']:
+            geojson.add_child(
+                folium.features.GeoJsonTooltip(
+                    fields=["land_use", "area_type"],
+                    aliases=["Land Use Class", "Area Type"],
+                    localize=True
+                )
             )
-        )
     elif selected_file == "NDVI":
-        geojson.add_child(
-            folium.features.GeoJsonTooltip(
-                fields=["label", "ndvi_value"],
-                aliases=["NDVI Class", "NDVI Value"],
-                localize=True
+        if 'label' in geojson.data['features'][0]['properties']:
+            geojson.add_child(
+                folium.features.GeoJsonTooltip(
+                    fields=["label", "ndvi_value"],
+                    aliases=["NDVI Class", "NDVI Value"],
+                    localize=True
+                )
             )
-        )
     elif selected_file == "Roads":
-        geojson.add_child(
-            folium.features.GeoJsonTooltip(
-                fields=["highway", "road_name"],
-                aliases=["Road Type", "Road Name"],
-                localize=True
+        if 'highway' in geojson.data['features'][0]['properties']:
+            geojson.add_child(
+                folium.features.GeoJsonTooltip(
+                    fields=["highway", "road_name"],
+                    aliases=["Road Type", "Road Name"],
+                    localize=True
+                )
             )
-        )
 
 # Add layers based on the "Show All Layers" checkbox
 if show_all_layers:
