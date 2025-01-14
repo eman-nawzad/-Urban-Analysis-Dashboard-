@@ -25,16 +25,28 @@ selected_file = st.sidebar.selectbox("Choose a dataset", list(data_files.keys())
 # Load the selected dataset
 gdf = gpd.read_file(data_files[selected_file])
 
-# Add time-based filtering for the NDVI dataset
+# Filter by time if NDVI dataset is selected
 if selected_file == "NDVI":
-    # Add date picker for time range selection
-    start_date = st.sidebar.date_input("Start Date", min_value=pd.to_datetime(gdf['time'].min()), max_value=pd.to_datetime(gdf['time'].max()))
-    end_date = st.sidebar.date_input("End Date", min_value=start_date, max_value=pd.to_datetime(gdf['time'].max()))
+    # Check if 'time' column exists
+    if 'time' not in gdf.columns:
+        st.error("The dataset does not contain a 'time' column.")
+    else:
+        # Check if the 'time' column is numeric (timestamp in milliseconds)
+        if pd.api.types.is_numeric_dtype(gdf['time']):
+            # Convert timestamp (milliseconds since Unix epoch) to datetime
+            gdf['time'] = pd.to_datetime(gdf['time'], unit='ms')
+        
+        # Handle case where 'time' conversion fails
+        if gdf['time'].isnull().all():
+            st.error("The 'time' column could not be parsed as datetime.")
+        else:
+            # Add date picker for time range selection
+            start_date = st.sidebar.date_input("Start Date", min_value=gdf['time'].min().date(), max_value=gdf['time'].max().date())
+            end_date = st.sidebar.date_input("End Date", min_value=start_date, max_value=gdf['time'].max().date())
 
-    # Filter the NDVI data by the selected date range
-    gdf['time'] = pd.to_datetime(gdf['time'])  # Ensure 'time' is in datetime format
-    filtered_gdf = gdf[(gdf['time'] >= start_date) & (gdf['time'] <= end_date)]
-    
+            # Filter the dataset based on the selected date range
+            filtered_gdf = gdf[(gdf['time'] >= pd.to_datetime(start_date)) & (gdf['time'] <= pd.to_datetime(end_date))]
+
 elif selected_file == "Urban Density":
     # Example: Filter by urban density classes
     density_classes = {
@@ -125,6 +137,7 @@ st_folium(m, width=700, height=500)
 # Display the filtered dataset in a table below the map
 st.write(f"### {selected_file} Dataset")
 st.dataframe(filtered_gdf)
+
 
 
 
