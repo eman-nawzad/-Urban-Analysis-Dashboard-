@@ -44,14 +44,19 @@ if selected_file == "Urban Density":
     filtered_gdf = gdf[gdf['label'] == selected_density_value]
 
 elif selected_file == "LCZ":
-    # Example: Filter by LCZ (if applicable)
+    # Filter by LCZ class for specific zones (Compact High-Rise, Open Low-Rise, Industrial Zones)
     if 'lcz_class' in gdf.columns:
-        lcz_classes = gdf['lcz_class'].unique()
+        lcz_classes = {
+            "Compact High-Rise (LCZ class 1)": 1,
+            "Open Low-Rise (LCZ class 6)": 6,
+            "Industrial Zones (LCZ class 8)": 8
+        }
         selected_lcz = st.sidebar.selectbox(
             "Filter by LCZ Class",
-            list(lcz_classes)
+            list(lcz_classes.keys())
         )
-        filtered_gdf = gdf[gdf['lcz_class'] == selected_lcz]
+        selected_lcz_value = lcz_classes[selected_lcz]
+        filtered_gdf = gdf[gdf['lcz_class'] == selected_lcz_value]
     else:
         filtered_gdf = gdf
 
@@ -142,6 +147,7 @@ st_folium(m, width=700, height=500)
 # Display the filtered dataset as a table below the map
 st.write(f"### {selected_file} Dataset")
 st.dataframe(filtered_gdf)  # Show the filtered data as a table below the map
+
 
 
 
