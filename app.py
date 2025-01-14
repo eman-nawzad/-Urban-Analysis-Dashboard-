@@ -6,7 +6,7 @@ import geopandas as gpd
 # Dictionary to map the names of the files to a label in the sidebar
 data_files = {
     "Urban Density": "data/UrbanDensity.geojson",
-    "LCZ": "data/LCZ.geojson",
+    "LCZ": "data/LCZ_Zones.geojson",
     "Land Use": "data/Land_Use.geojson",
     "NDVI": "data/NDVIt.geojson",
     "Roads": "data/Roads.geojson"
@@ -47,7 +47,7 @@ if selected_file == "Urban Density":
         selected_density_value = density_classes[selected_density]
         filtered_gdf = gdf[gdf['label'] == selected_density_value]
 
-elif selected_file == "LCZ":
+elif selected_file == "LCZ_Zones":
     # Map the LCZ class names to their corresponding numerical values
     lcz_classes = {
         "Compact High-Rise": 1,
