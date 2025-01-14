@@ -132,7 +132,7 @@ else:
 m = folium.Map(location=[filtered_gdf.geometry.centroid.y.mean(), filtered_gdf.geometry.centroid.x.mean()],
                zoom_start=12)
 
-# Function to style features and add hover information
+# Define the function to style features
 def style_function(feature):
     return {
         'color': 'blue',
@@ -140,29 +140,37 @@ def style_function(feature):
         'opacity': 1
     }
 
-def on_hover(feature):
-    properties = feature['properties']
-    return folium.Tooltip(f"Label: {properties.get('label', 'N/A')}, Land Use: {properties.get('land_use', 'N/A')}").add_to(folium.Marker([feature['geometry']['coordinates'][1], feature['geometry']['coordinates'][0]]))
+# Add hover functionality
+def add_tooltip(geojson, column_name):
+    geojson.add_child(
+        folium.features.GeoJsonTooltip(
+            fields=[column_name],
+            aliases=[f"{column_name}:"],
+            localize=True
+        )
+    )
 
 # Add layers based on the "Show All Layers" checkbox
 if show_all_layers:
     # Show all layers
     for file_name, file_path in data_files.items():
         layer_gdf = gpd.read_file(file_path)
-        folium.GeoJson(
+        geojson = folium.GeoJson(
             layer_gdf,
             name=file_name,
-            style_function=style_function,
-            tooltip=on_hover
-        ).add_to(m)
+            style_function=style_function
+        )
+        add_tooltip(geojson, 'label')  # Adjust this to the column you want to display on hover
+        geojson.add_to(m)
 else:
     # Add only the selected dataset to the map
-    folium.GeoJson(
+    geojson = folium.GeoJson(
         filtered_gdf,
         name=selected_file,
-        style_function=style_function,
-        tooltip=on_hover
-    ).add_to(m)
+        style_function=style_function
+    )
+    add_tooltip(geojson, 'label')  # Adjust this to the column you want to display on hover
+    geojson.add_to(m)
 
 # Add a layer control to toggle layers on/off
 folium.LayerControl().add_to(m)
