@@ -2,7 +2,6 @@ import streamlit as st
 import folium
 from streamlit_folium import st_folium
 import geopandas as gpd
-import random
 
 # Dictionary to map the names of the files to a label in the sidebar
 data_files = {
@@ -86,10 +85,10 @@ else:
 
 # Show instructions if the data file is empty
 if filtered_gdf.empty:
-    st.sidebar.warning(f"No data available for the selected filter in the '{selected_file}' dataset. Please try a different combination.")
+    st.warning(f"No data available for the selected filter in the '{selected_file}' dataset. Please try a different combination.")
 else:
     # Show a success message when data is available
-    st.sidebar.success(f"Displaying data from the '{selected_file}' dataset.")
+    st.success(f"Displaying data from the '{selected_file}' dataset.")
 
 # Create a Folium map centered around the filtered data
 m = folium.Map(location=[filtered_gdf.geometry.centroid.y.mean(), filtered_gdf.geometry.centroid.x.mean()],
@@ -117,7 +116,7 @@ else:
     elif selected_file == "LCZ":
         add_layer(filtered_gdf, "LCZ", color="blue")
     elif selected_file == "Land Use":
-        add_layer(filtered_gdf, "Land Use", color="orenge")
+        add_layer(filtered_gdf, "Land Use", color="orange")
     elif selected_file == "NDVI":
         add_layer(filtered_gdf, "NDVI", color="light green")
     elif selected_file == "Roads":
@@ -128,6 +127,11 @@ folium.LayerControl().add_to(m)
 
 # Show the map in Streamlit
 st_folium(m, width=700, height=500)
+
+# Display the filtered dataset as a table below the map
+st.write(f"### {selected_file} Dataset")
+st.dataframe(filtered_gdf)  # Show the filtered data as a table below the map
+
 
 
 
