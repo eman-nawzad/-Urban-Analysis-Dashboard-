@@ -108,7 +108,7 @@ if show_all_layers:
     add_layer(gpd.read_file(data_files["Urban Density"]), "Urban Density", color="yellow")
     add_layer(gpd.read_file(data_files["LCZ"]), "LCZ", color="Blue")
     add_layer(gpd.read_file(data_files["Land Use"]), "Land Use", color=" Lime Green ")
-    add_layer(gpd.read_file(data_files["NDVI"]), "NDVI", color="green")
+    add_layer(gpd.read_file(data_files["NDVI"]), "NDVI", color="light green")
     add_layer(gpd.read_file(data_files["Roads"]), "Roads", color="red")
 else:
     # Add only the selected dataset to the map
@@ -119,7 +119,7 @@ else:
     elif selected_file == "Land Use":
         add_layer(filtered_gdf, "Land Use", color=" Lime Green ")
     elif selected_file == "NDVI":
-        add_layer(filtered_gdf, "NDVI", color="green")
+        add_layer(filtered_gdf, "NDVI", color="light green")
     elif selected_file == "Roads":
         add_layer(filtered_gdf, "Roads", color="red")
 
