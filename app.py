@@ -25,32 +25,22 @@ selected_file = st.sidebar.selectbox("Choose a dataset", list(data_files.keys())
 # Load the selected dataset
 gdf = gpd.read_file(data_files[selected_file])
 
-# Filter by time if NDVI dataset is selected
-if selected_file == "NDVI":
-    # Check if 'time' column exists
-    if 'time' not in gdf.columns:
-        st.error("The dataset does not contain a 'time' column.")
-    else:
-        # Check if the 'time' column is numeric (timestamp in milliseconds)
-        if pd.api.types.is_numeric_dtype(gdf['time']):
-            # Convert timestamp (milliseconds since Unix epoch) to datetime
-            gdf['time'] = pd.to_datetime(gdf['time'], unit='ms')
-        
-        # Handle case where 'time' conversion fails
-        if gdf['time'].isnull().all():
-            st.error("The 'time' column could not be parsed as datetime.")
-        else:
-            # Add date picker for time range selection
-            start_date = st.sidebar.date_input("Start Date", min_value=gdf['time'].min().date(), max_value=gdf['time'].max().date())
-            end_date = st.sidebar.date_input("End Date", min_value=start_date, max_value=gdf['time'].max().date())
+# Ensure the 'time' column is in datetime format
+gdf['time'] = pd.to_datetime(gdf['time'], errors='coerce')
 
-            # Filter the dataset based on the selected date range
-            filtered_gdf = gdf[(gdf['time'] >= pd.to_datetime(start_date)) & (gdf['time'] <= pd.to_datetime(end_date))]
+# Get the min and max date in the data
+min_date_in_data = gdf['time'].min().date()
+max_date_in_data = gdf['time'].max().date()
 
-            # Convert the 'time' column to string (ISO 8601 format) to make it JSON serializable
-            filtered_gdf['time'] = filtered_gdf['time'].dt.strftime('%Y-%m-%dT%H:%M:%S')
+# Sidebar date picker
+start_date = st.sidebar.date_input("Start Date", min_value=min_date_in_data, max_value=max_date_in_data)
+end_date = st.sidebar.date_input("End Date", min_value=start_date, max_value=max_date_in_data)
 
-elif selected_file == "Urban Density":
+# Filter the dataset based on the selected date range
+filtered_gdf = gdf[(gdf['time'] >= pd.to_datetime(start_date)) & (gdf['time'] <= pd.to_datetime(end_date))]
+
+# Filter based on the selected dataset
+if selected_file == "Urban Density":
     # Example: Filter by urban density classes
     density_classes = {
         "Very Low Density (<10%)": 1,
@@ -64,10 +54,10 @@ elif selected_file == "Urban Density":
     )
     
     if selected_density == "All":
-        filtered_gdf = gdf
+        filtered_gdf = filtered_gdf
     else:
         selected_density_value = density_classes[selected_density]
-        filtered_gdf = gdf[gdf['label'] == selected_density_value]
+        filtered_gdf = filtered_gdf[filtered_gdf['label'] == selected_density_value]
 
 elif selected_file == "LCZ":
     # Map LCZ classes
@@ -82,10 +72,10 @@ elif selected_file == "LCZ":
     )
     
     if selected_lcz_class == "All":
-        filtered_gdf = gdf
+        filtered_gdf = filtered_gdf
     else:
         selected_lcz_value = lcz_classes[selected_lcz_class]
-        filtered_gdf = gdf[gdf['LCZ_Filter'] == selected_lcz_value]
+        filtered_gdf = filtered_gdf[filtered_gdf['LCZ_Filter'] == selected_lcz_value]
 
 elif selected_file == "Land Use":
     # Filter Land Use for 2021
@@ -101,23 +91,43 @@ elif selected_file == "Land Use":
     )
     
     if selected_land_use == "All":
-        filtered_gdf = gdf[gdf['land_use'].isin(land_use_classes.keys())]
+        filtered_gdf = filtered_gdf[filtered_gdf['land_use'].isin(land_use_classes.keys())]
     else:
         selected_land_use_value = [key for key, value in land_use_classes.items() if value == selected_land_use][0]
-        filtered_gdf = gdf[gdf['land_use'] == selected_land_use_value]
+        filtered_gdf = filtered_gdf[filtered_gdf['land_use'] == selected_land_use_value]
+
+elif selected_file == "NDVI":
+    # Filter NDVI data for 2021
+    label_mapping = {
+        1: "Dense Forest",
+        2: "Sparse Grass"
+    }
+    st.sidebar.markdown("#### NDVI Data (2021)")
+    filtered_gdf = filtered_gdf[filtered_gdf['label'] != 3]  # Remove value 3
+    filtered_gdf['label'] = filtered_gdf['label'].map(label_mapping).fillna(filtered_gdf['label'])
+    unique_labels = filtered_gdf['label'].unique()
+    selected_label = st.sidebar.selectbox(
+        "Filter by NDVI Label",
+        list(unique_labels) + ["All"]
+    )
+    
+    if selected_label == "All":
+        filtered_gdf = filtered_gdf
+    else:
+        filtered_gdf = filtered_gdf[filtered_gdf['label'] == selected_label]
 
 elif selected_file == "Roads":
     # Filter by road type (highway)
-    highway_types = gdf['highway'].unique()
+    highway_types = filtered_gdf['highway'].unique()
     selected_highway = st.sidebar.selectbox(
         "Filter by Road Type",
         list(highway_types) + ["All"]
     )
     
     if selected_highway == "All":
-        filtered_gdf = gdf
+        filtered_gdf = filtered_gdf
     else:
-        filtered_gdf = gdf[gdf['highway'] == selected_highway]
+        filtered_gdf = filtered_gdf[filtered_gdf['highway'] == selected_highway]
 
 # Sidebar warning message for no data
 if filtered_gdf.empty:
@@ -126,10 +136,10 @@ else:
     st.sidebar.success(f"Displaying data from the '{selected_file}' dataset.")
 
 # Create the map
-m = folium.Map(location=[gdf.geometry.centroid.y.mean(), gdf.geometry.centroid.x.mean()], zoom_start=12)
+m = folium.Map(location=[filtered_gdf.geometry.centroid.y.mean(), filtered_gdf.geometry.centroid.x.mean()], zoom_start=12)
 
 # Add the filtered GeoJSON data to the map
-folium.GeoJson(filtered_gdf.to_json(), name=selected_file).add_to(m)
+folium.GeoJson(filtered_gdf, name=selected_file).add_to(m)
 
 # Add a layer control
 folium.LayerControl().add_to(m)
@@ -140,6 +150,7 @@ st_folium(m, width=700, height=500)
 # Display the filtered dataset in a table below the map
 st.write(f"### {selected_file} Dataset")
 st.dataframe(filtered_gdf)
+
 
 
 
