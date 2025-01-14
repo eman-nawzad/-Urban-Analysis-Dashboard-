@@ -132,12 +132,23 @@ else:
 m = folium.Map(location=[filtered_gdf.geometry.centroid.y.mean(), filtered_gdf.geometry.centroid.x.mean()],
                zoom_start=12)
 
-# Add the selected layer to the map
-folium.GeoJson(
-    filtered_gdf,
-    name=selected_file,
-    style_function=lambda x: {'color': 'blue'}
-).add_to(m)
+# Add layers based on the "Show All Layers" checkbox
+if show_all_layers:
+    # Show all layers
+    for file_name, file_path in data_files.items():
+        layer_gdf = gpd.read_file(file_path)
+        folium.GeoJson(
+            layer_gdf,
+            name=file_name,
+            style_function=lambda x: {'color': 'blue'}
+        ).add_to(m)
+else:
+    # Add only the selected dataset to the map
+    folium.GeoJson(
+        filtered_gdf,
+        name=selected_file,
+        style_function=lambda x: {'color': 'blue'}
+    ).add_to(m)
 
 # Add a layer control to toggle layers on/off
 folium.LayerControl().add_to(m)
