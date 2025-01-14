@@ -90,19 +90,20 @@ elif selected_file == "Land Use":
         filtered_gdf = gdf[gdf['land_use'] == selected_land_use_value]
         
 elif selected_file == "NDVI":
-    # Check if the 'NDVI' column exists in the dataset
-    if 'NDVI' in gdf.columns:
-        # Filter by NDVI values using a slider
-        ndvi_range = st.sidebar.slider(
-            "Filter by NDVI Value",
-            min_value=gdf['NDVI'].min(),
-            max_value=gdf['NDVI'].max(),
-            value=(gdf['NDVI'].min(), gdf['NDVI'].max())
+    # Filter by the 'label' column for NDVI
+    if 'label' in gdf.columns:
+        unique_labels = gdf['label'].unique()
+        selected_label = st.sidebar.selectbox(
+            "Filter by NDVI Label",
+            list(unique_labels) + ["All"]
         )
-        # Filter the GeoDataFrame based on the selected NDVI range
-        filtered_gdf = gdf[(gdf['NDVI'] >= ndvi_range[0]) & (gdf['NDVI'] <= ndvi_range[1])]
+        
+        if selected_label == "All":
+            filtered_gdf = gdf
+        else:
+            filtered_gdf = gdf[gdf['label'] == selected_label]
     else:
-        filtered_gdf = gdf  # If 'NDVI' column doesn't exist, display the whole dataset
+        filtered_gdf = gdf  # If 'label' column doesn't exist, display the whole dataset
 
 elif selected_file == "Roads":
     # Filter by highway types (road types)
@@ -170,6 +171,7 @@ st_folium(m, width=700, height=500)
 # Display the filtered dataset as a table below the map
 st.write(f"### {selected_file} Dataset")
 st.dataframe(filtered_gdf)  # Show the filtered data as a table below the map
+
 
 
 
