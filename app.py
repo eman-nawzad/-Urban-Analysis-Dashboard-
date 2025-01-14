@@ -2,7 +2,6 @@ import streamlit as st
 import folium
 from streamlit_folium import st_folium
 import geopandas as gpd
-import plotly.graph_objects as go
 
 # Define dataset paths
 data_files = {
@@ -124,21 +123,10 @@ if tooltip_column and tooltip_column in filtered_gdf.columns:
 else:
     hover_texts = ["No tooltip available"] * len(filtered_gdf)
 
-# Create Plotly table
-columns_to_display = list(filtered_gdf.columns)
-table = go.Figure(data=[go.Table(
-    header=dict(values=columns_to_display, fill_color='lightgrey', align='left'),
-    cells=dict(
-        values=[filtered_gdf[col] for col in columns_to_display],
-        fill_color='white',
-        align='left',
-        hoverinfo="text",
-        hovertext=hover_texts
-    )
-)])
+# Display table using Streamlit's built-in functionality
+st.write(filtered_gdf[["geometry"] + [col for col in filtered_gdf.columns if col != "geometry"]])
 
-# Display the table
-st.plotly_chart(table)
+
 
 
 
