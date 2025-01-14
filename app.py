@@ -2,6 +2,7 @@ import streamlit as st
 import folium
 from streamlit_folium import st_folium
 import geopandas as gpd
+import pandas as pd
 
 # Dictionary to map the names of the files to a label in the sidebar
 data_files = {
@@ -24,8 +25,17 @@ selected_file = st.sidebar.selectbox("Choose a dataset", list(data_files.keys())
 # Load the selected dataset
 gdf = gpd.read_file(data_files[selected_file])
 
-# Filter based on the selected dataset
-if selected_file == "Urban Density":
+# Add time-based filtering for the NDVI dataset
+if selected_file == "NDVI":
+    # Add date picker for time range selection
+    start_date = st.sidebar.date_input("Start Date", min_value=pd.to_datetime(gdf['time'].min()), max_value=pd.to_datetime(gdf['time'].max()))
+    end_date = st.sidebar.date_input("End Date", min_value=start_date, max_value=pd.to_datetime(gdf['time'].max()))
+
+    # Filter the NDVI data by the selected date range
+    gdf['time'] = pd.to_datetime(gdf['time'])  # Ensure 'time' is in datetime format
+    filtered_gdf = gdf[(gdf['time'] >= start_date) & (gdf['time'] <= end_date)]
+    
+elif selected_file == "Urban Density":
     # Example: Filter by urban density classes
     density_classes = {
         "Very Low Density (<10%)": 1,
@@ -81,26 +91,6 @@ elif selected_file == "Land Use":
         selected_land_use_value = [key for key, value in land_use_classes.items() if value == selected_land_use][0]
         filtered_gdf = gdf[gdf['land_use'] == selected_land_use_value]
 
-elif selected_file == "NDVI":
-    # Filter NDVI data for 2021
-    label_mapping = {
-        1: "Dense Forest",
-        2: "Sparse Grass"
-    }
-    st.sidebar.markdown("#### NDVI Data (2021)")
-    gdf = gdf[gdf['label'] != 3]  # Remove value 3
-    gdf['label'] = gdf['label'].map(label_mapping).fillna(gdf['label'])
-    unique_labels = gdf['label'].unique()
-    selected_label = st.sidebar.selectbox(
-        "Filter by NDVI Label",
-        list(unique_labels) + ["All"]
-    )
-    
-    if selected_label == "All":
-        filtered_gdf = gdf
-    else:
-        filtered_gdf = gdf[gdf['label'] == selected_label]
-
 elif selected_file == "Roads":
     # Filter by road type (highway)
     highway_types = gdf['highway'].unique()
@@ -135,6 +125,7 @@ st_folium(m, width=700, height=500)
 # Display the filtered dataset in a table below the map
 st.write(f"### {selected_file} Dataset")
 st.dataframe(filtered_gdf)
+
 
 
 
