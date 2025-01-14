@@ -41,16 +41,12 @@ else:
     # Show a success message when data is available
     st.sidebar.success("Displaying polygons for the selected density class(es).")
 
-# Create a Folium map centered around the filtered data
-if not filtered_gdf.empty:
+    # Create a Folium map centered around the filtered data
     m = folium.Map(location=[filtered_gdf.geometry.centroid.y.mean(), filtered_gdf.geometry.centroid.x.mean()],
                    zoom_start=12)
     folium.GeoJson(filtered_gdf).add_to(m)
     st_folium(m, width=700, height=500)
 
-# Show the filtered table data
-st.subheader("Filtered Urban Density Data")
-st.dataframe(filtered_gdf)
 
 
 
