@@ -65,6 +65,12 @@ elif selected_file == "Roads":
         road_filter = st.sidebar.selectbox("Filter by Road Type", ["All"] + list(highway_types))
         if road_filter != "All":
             filtered_gdf = gdf[gdf['highway'] == road_filter]
+            
+# Sidebar warning message for no data
+if filtered_gdf.empty:
+    st.sidebar.warning(f"No data available for the selected class in the '{selected_file}' dataset. Please try a different selection.")
+else:
+    st.sidebar.success(f"Displaying data from the '{selected_file}' dataset.")
 
 # Create map
 m = folium.Map(location=[filtered_gdf.geometry.centroid.y.mean(), filtered_gdf.geometry.centroid.x.mean()], zoom_start=12)
