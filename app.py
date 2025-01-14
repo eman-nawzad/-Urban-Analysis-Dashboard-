@@ -47,6 +47,9 @@ if selected_file == "NDVI":
             # Filter the dataset based on the selected date range
             filtered_gdf = gdf[(gdf['time'] >= pd.to_datetime(start_date)) & (gdf['time'] <= pd.to_datetime(end_date))]
 
+            # Convert the 'time' column to string (ISO 8601 format) to make it JSON serializable
+            filtered_gdf['time'] = filtered_gdf['time'].dt.strftime('%Y-%m-%dT%H:%M:%S')
+
 elif selected_file == "Urban Density":
     # Example: Filter by urban density classes
     density_classes = {
@@ -126,7 +129,7 @@ else:
 m = folium.Map(location=[gdf.geometry.centroid.y.mean(), gdf.geometry.centroid.x.mean()], zoom_start=12)
 
 # Add the filtered GeoJSON data to the map
-folium.GeoJson(filtered_gdf, name=selected_file).add_to(m)
+folium.GeoJson(filtered_gdf.to_json(), name=selected_file).add_to(m)
 
 # Add a layer control
 folium.LayerControl().add_to(m)
@@ -137,6 +140,7 @@ st_folium(m, width=700, height=500)
 # Display the filtered dataset in a table below the map
 st.write(f"### {selected_file} Dataset")
 st.dataframe(filtered_gdf)
+
 
 
 
