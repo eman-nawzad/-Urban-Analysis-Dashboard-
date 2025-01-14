@@ -140,12 +140,15 @@ def style_function(feature):
         'opacity': 1
     }
 
-# Add hover functionality
-def add_tooltip(geojson, column_name):
+# Add hover functionality for all datasets
+def add_tooltip(geojson):
+    # Get the columns dynamically
+    fields = geojson.data['features'][0]['properties'].keys()
+    aliases = [field.replace("_", " ").title() for field in fields]
     geojson.add_child(
         folium.features.GeoJsonTooltip(
-            fields=[column_name],
-            aliases=[f"{column_name}:"],
+            fields=fields,
+            aliases=aliases,
             localize=True
         )
     )
@@ -160,7 +163,7 @@ if show_all_layers:
             name=file_name,
             style_function=style_function
         )
-        add_tooltip(geojson, 'label')  # Adjust this to the column you want to display on hover
+        add_tooltip(geojson)  # Automatically add tooltip for each dataset
         geojson.add_to(m)
 else:
     # Add only the selected dataset to the map
@@ -169,7 +172,7 @@ else:
         name=selected_file,
         style_function=style_function
     )
-    add_tooltip(geojson, 'label')  # Adjust this to the column you want to display on hover
+    add_tooltip(geojson)  # Automatically add tooltip for the selected dataset
     geojson.add_to(m)
 
 # Add a layer control to toggle layers on/off
@@ -181,6 +184,7 @@ st_folium(m, width=700, height=500)
 # Display the filtered dataset as a table below the map
 st.write(f"### {selected_file} Dataset")
 st.dataframe(filtered_gdf)
+
 
 
 
