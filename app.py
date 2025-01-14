@@ -71,20 +71,32 @@ elif selected_file == "LCZ_Zones":
         filtered_gdf = gdf[gdf['LCZ_Filter'] == selected_lcz_value]
 
 elif selected_file == "Land Use":
-    # Example: Filter by land use class
-    if 'land_use' in gdf.columns:
-        land_use_classes = gdf['land_use'].unique()
-        selected_land_use = st.sidebar.selectbox(
-            "Filter by Land Use Class",
-            list(land_use_classes) + ["All"]
-        )
-        
-        if selected_land_use == "All":
-            filtered_gdf = gdf
-        else:
-            filtered_gdf = gdf[gdf['land_use'] == selected_land_use]
-    else:
+    # Map the land use classes to their names
+    land_use_classes = {
+        0: "Forest",
+        1: "Shrubland",
+        2: "Grassland",
+        3: "Croplands",
+        4: "Urban",  # This includes residential, commercial, industrial
+        5: "Water",
+        6: "Barren",
+        7: "Snow/Ice",
+        8: "Wetlands",
+        9: "Other"
+    }
+
+    # Sidebar selectbox displays the land use class names plus "All" option
+    selected_land_use = st.sidebar.selectbox(
+        "Filter by Land Use Class",
+        list(land_use_classes.values()) + ["All"]
+    )
+    
+    if selected_land_use == "All":
         filtered_gdf = gdf
+    else:
+        # Find the corresponding value for the selected land use class
+        selected_land_use_value = [key for key, value in land_use_classes.items() if value == selected_land_use][0]
+        filtered_gdf = gdf[gdf['land_use'] == selected_land_use_value]
 
 elif selected_file == "NDVI":
     # Example: Filter by NDVI values (if applicable)
