@@ -90,8 +90,16 @@ elif selected_file == "Land Use":
         filtered_gdf = gdf[gdf['land_use'] == selected_land_use_value]
         
 elif selected_file == "NDVI":
-    # Filter by the 'label' column for NDVI
+    # Replace numeric values with names in the 'label' column for NDVI
     if 'label' in gdf.columns:
+        # Replace values with names: 1 -> "Dense Forest", 2 -> "Sparse Grass"
+        label_mapping = {
+            1: "Dense Forest",
+            2: "Sparse Grass"
+        }
+        gdf['label'] = gdf['label'].map(label_mapping).fillna(gdf['label'])
+
+        # Filter by the 'label' column for NDVI
         unique_labels = gdf['label'].unique()
         selected_label = st.sidebar.selectbox(
             "Filter by NDVI Label",
@@ -147,7 +155,7 @@ if show_all_layers:
     add_layer(gpd.read_file(data_files["Urban Density"]), "Urban Density", color="black")
     add_layer(gpd.read_file(data_files["LCZ"]), "LCZ", color="blue")
     add_layer(gpd.read_file(data_files["Land Use"]), "Land Use", color="orange")
-    add_layer(gpd.read_file(data_files["NDVI"]), "NDVI", color=" green")
+    add_layer(gpd.read_file(data_files["NDVI"]), "NDVI", color="light green")
     add_layer(gpd.read_file(data_files["Roads"]), "Roads", color="red")
 else:
     # Add only the selected dataset to the map
@@ -158,7 +166,7 @@ else:
     elif selected_file == "Land Use":
         add_layer(filtered_gdf, "Land Use", color="orange")
     elif selected_file == "NDVI":
-        add_layer(filtered_gdf, "NDVI", color=" green")
+        add_layer(filtered_gdf, "NDVI", color="light green")
     elif selected_file == "Roads":
         add_layer(filtered_gdf, "Roads", color="red")
 
