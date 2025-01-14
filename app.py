@@ -2,7 +2,7 @@ import streamlit as st
 import folium
 from streamlit_folium import st_folium
 import geopandas as gpd
-import random
+import pandas as pd
 
 # Dictionary to map the names of the files to a label in the sidebar
 data_files = {
@@ -28,74 +28,42 @@ selected_file = st.sidebar.selectbox(
 # Load the selected dataset
 gdf = gpd.read_file(data_files[selected_file])
 
-# Filter based on the selected dataset (this can be customized based on attributes)
-if selected_file == "Urban Density":
-    # Example: Filter by urban density classes
-    density_classes = {
-        "Very Low Density (<10%)": 1,
-        "Low Density (10–30%)": 2,
-        "Medium Density (30–70%)": 3,
-        "High Density (>70%)": 4
-    }
-    selected_density = st.sidebar.selectbox(
-        "Filter by Urban Density Class",
-        list(density_classes.keys())
-    )
-    selected_density_value = density_classes[selected_density]
-    filtered_gdf = gdf[gdf['label'] == selected_density_value]
+# Display the data table of the selected layer
+st.write(f"### Preview of {selected_file} Dataset")
+st.write(gdf.head())  # Show the first few rows of the selected dataset
 
-elif selected_file == "LCZ":
-    # Example: Filter by LCZ (if applicable)
-    if 'lcz_class' in gdf.columns:
-        lcz_classes = gdf['lcz_class'].unique()
-        selected_lcz = st.sidebar.selectbox(
-            "Filter by LCZ Class",
-            list(lcz_classes)
-        )
-        filtered_gdf = gdf[gdf['lcz_class'] == selected_lcz]
-    else:
-        filtered_gdf = gdf
+# Show the column names of the dataset (helpful for filtering)
+st.write("### Available Columns for Filtering")
+st.write(gdf.columns)
 
-elif selected_file == "Land Use":
-    # Example: Filter by land use class
-    if 'land_use' in gdf.columns:
-        land_use_classes = gdf['land_use'].unique()
-        selected_land_use = st.sidebar.selectbox(
-            "Filter by Land Use Class",
-            list(land_use_classes)
-        )
-        filtered_gdf = gdf[gdf['land_use'] == selected_land_use]
-    else:
-        filtered_gdf = gdf
+# If the user wants to filter, they can select from the columns
+# Create a filter sidebar option based on the available columns
+filter_column = st.sidebar.selectbox("Select a column to filter by", gdf.columns)
 
-elif selected_file == "NDVI":
-    # Example: Filter by NDVI values (if applicable)
-    if 'NDVI' in gdf.columns:
-        ndvi_range = st.sidebar.slider(
-            "Filter by NDVI Value",
-            min_value=gdf['NDVI'].min(),
-            max_value=gdf['NDVI'].max(),
-            value=(gdf['NDVI'].min(), gdf['NDVI'].max())
-        )
-        filtered_gdf = gdf[(gdf['NDVI'] >= ndvi_range[0]) & (gdf['NDVI'] <= ndvi_range[1])]
-    else:
-        filtered_gdf = gdf
-
+# Now allow the user to filter based on the selected column (for example, numeric or categorical values)
+if gdf[filter_column].dtype == 'object':  # If the column is categorical
+    unique_values = gdf[filter_column].unique()
+    selected_value = st.sidebar.selectbox(f"Filter by {filter_column}", unique_values)
+    filtered_gdf = gdf[gdf[filter_column] == selected_value]
+elif gdf[filter_column].dtype in ['int64', 'float64']:  # If the column is numeric
+    min_value, max_value = gdf[filter_column].min(), gdf[filter_column].max()
+    selected_range = st.sidebar.slider(f"Filter by {filter_column}", min_value, max_value, (min_value, max_value))
+    filtered_gdf = gdf[(gdf[filter_column] >= selected_range[0]) & (gdf[filter_column] <= selected_range[1])]
 else:
     filtered_gdf = gdf
 
-# Show instructions if the data file is empty
+# Show instructions if the data file is empty after filtering
 if filtered_gdf.empty:
     st.sidebar.warning(f"No data available for the selected filter in the '{selected_file}' dataset. Please try a different combination.")
 else:
     # Show a success message when data is available
-    st.sidebar.success(f"Displaying data from the '{selected_file}' dataset.")
+    st.sidebar.success(f"Displaying filtered data from the '{selected_file}' dataset.")
 
 # Create a Folium map centered around the filtered data
 m = folium.Map(location=[filtered_gdf.geometry.centroid.y.mean(), filtered_gdf.geometry.centroid.x.mean()],
                zoom_start=12)
 
-# Add the selected layer
+# Add the selected layer to the map with a color (you can change the color as needed)
 def add_layer(gdf, layer_name, color=None):
     """Function to add a layer with a specific color if provided."""
     if color:
@@ -105,19 +73,19 @@ def add_layer(gdf, layer_name, color=None):
 
 # If "Show All Layers" is selected, add all layers with specific colors
 if show_all_layers:
-    add_layer(gpd.read_file(data_files["Urban Density"]), "Urban Density", color="yellow")
-    add_layer(gpd.read_file(data_files["LCZ"]), "LCZ", color="Blue")
-    add_layer(gpd.read_file(data_files["Land Use"]), "Land Use", color=" Lime Green ")
-    add_layer(gpd.read_file(data_files["NDVI"]), "NDVI", color="light green")
+    add_layer(gpd.read_file(data_files["Urban Density"]), "Urban Density", color="black")
+    add_layer(gpd.read_file(data_files["LCZ"]), "LCZ", color="blue")
+    add_layer(gpd.read_file(data_files["Land Use"]), "Land Use", color=" orange")
+    add_layer(gpd.read_file(data_files["NDVI"]), "NDVI", color="light green ")
     add_layer(gpd.read_file(data_files["Roads"]), "Roads", color="red")
 else:
     # Add only the selected dataset to the map
     if selected_file == "Urban Density":
-        add_layer(filtered_gdf, "Urban Density", color=" yellow ")
+        add_layer(filtered_gdf, "Urban Density", color="black")
     elif selected_file == "LCZ":
-        add_layer(filtered_gdf, "LCZ", color="Blue")
+        add_layer(filtered_gdf, "LCZ", color="blue ")
     elif selected_file == "Land Use":
-        add_layer(filtered_gdf, "Land Use", color=" Lime Green ")
+        add_layer(filtered_gdf, "Land Use", color="orange")
     elif selected_file == "NDVI":
         add_layer(filtered_gdf, "NDVI", color="light green")
     elif selected_file == "Roads":
@@ -128,6 +96,7 @@ folium.LayerControl().add_to(m)
 
 # Show the map in Streamlit
 st_folium(m, width=700, height=500)
+
 
 
 
