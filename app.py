@@ -2,6 +2,7 @@ import streamlit as st
 import folium
 from streamlit_folium import st_folium
 import geopandas as gpd
+import random
 
 # Dictionary to map the names of the files to a label in the sidebar
 data_files = {
@@ -14,6 +15,9 @@ data_files = {
 
 # Sidebar for selecting which dataset to view
 st.sidebar.title("Select Dataset and Apply Filters")
+
+# Option to select all layers
+show_all_layers = st.sidebar.checkbox("Show All Layers", value=False)
 
 # Dataset selection box
 selected_file = st.sidebar.selectbox(
@@ -42,7 +46,6 @@ if selected_file == "Urban Density":
 
 elif selected_file == "LCZ":
     # Example: Filter by LCZ (if applicable)
-    # If there's a column like 'lcz_class', you can filter it
     if 'lcz_class' in gdf.columns:
         lcz_classes = gdf['lcz_class'].unique()
         selected_lcz = st.sidebar.selectbox(
@@ -88,11 +91,44 @@ else:
     # Show a success message when data is available
     st.sidebar.success(f"Displaying data from the '{selected_file}' dataset.")
 
-    # Create a Folium map centered around the filtered data
-    m = folium.Map(location=[filtered_gdf.geometry.centroid.y.mean(), filtered_gdf.geometry.centroid.x.mean()],
-                   zoom_start=12)
-    folium.GeoJson(filtered_gdf).add_to(m)
-    st_folium(m, width=700, height=500)
+# Create a Folium map centered around the filtered data
+m = folium.Map(location=[filtered_gdf.geometry.centroid.y.mean(), filtered_gdf.geometry.centroid.x.mean()],
+               zoom_start=12)
+
+# Add the selected layer
+def add_layer(gdf, layer_name, color=None):
+    """Function to add a layer with a specific color if provided."""
+    if color:
+        folium.GeoJson(gdf, name=layer_name, style_function=lambda x: {'color': color}).add_to(m)
+    else:
+        folium.GeoJson(gdf, name=layer_name).add_to(m)
+
+# If "Show All Layers" is selected, add all layers with specific colors
+if show_all_layers:
+    add_layer(gpd.read_file(data_files["Urban Density"]), "Urban Density", color="blue")
+    add_layer(gpd.read_file(data_files["LCZ"]), "LCZ", color="orange")
+    add_layer(gpd.read_file(data_files["Land Use"]), "Land Use", color="green")
+    add_layer(gpd.read_file(data_files["NDVI"]), "NDVI", color="purple")
+    add_layer(gpd.read_file(data_files["Roads"]), "Roads", color="red")
+else:
+    # Add only the selected dataset to the map
+    if selected_file == "Urban Density":
+        add_layer(filtered_gdf, "Urban Density", color="green")
+    elif selected_file == "LCZ":
+        add_layer(filtered_gdf, "LCZ", color="orange")
+    elif selected_file == "Land Use":
+        add_layer(filtered_gdf, "Land Use", color="blue")
+    elif selected_file == "NDVI":
+        add_layer(filtered_gdf, "NDVI", color="purple")
+    elif selected_file == "Roads":
+        add_layer(filtered_gdf, "Roads", color="red")
+
+# Add a layer control to toggle layers on/off
+folium.LayerControl().add_to(m)
+
+# Show the map in Streamlit
+st_folium(m, width=700, height=500)
+
 
 
 
