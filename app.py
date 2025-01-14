@@ -25,19 +25,25 @@ selected_file = st.sidebar.selectbox("Choose a dataset", list(data_files.keys())
 # Load the selected dataset
 gdf = gpd.read_file(data_files[selected_file])
 
-# Ensure the 'time' column is in datetime format
-gdf['time'] = pd.to_datetime(gdf['time'], errors='coerce')
+# Check if the 'time' column exists
+if 'time' in gdf.columns:
+    # Ensure the 'time' column is in datetime format
+    gdf['time'] = pd.to_datetime(gdf['time'], errors='coerce')
 
-# Get the min and max date in the data
-min_date_in_data = gdf['time'].min().date()
-max_date_in_data = gdf['time'].max().date()
+    # Get the min and max date in the data
+    min_date_in_data = gdf['time'].min().date()
+    max_date_in_data = gdf['time'].max().date()
 
-# Sidebar date picker
-start_date = st.sidebar.date_input("Start Date", min_value=min_date_in_data, max_value=max_date_in_data)
-end_date = st.sidebar.date_input("End Date", min_value=start_date, max_value=max_date_in_data)
+    # Sidebar date picker
+    start_date = st.sidebar.date_input("Start Date", min_value=min_date_in_data, max_value=max_date_in_data)
+    end_date = st.sidebar.date_input("End Date", min_value=start_date, max_value=max_date_in_data)
 
-# Filter the dataset based on the selected date range
-filtered_gdf = gdf[(gdf['time'] >= pd.to_datetime(start_date)) & (gdf['time'] <= pd.to_datetime(end_date))]
+    # Filter the dataset based on the selected date range
+    filtered_gdf = gdf[(gdf['time'] >= pd.to_datetime(start_date)) & (gdf['time'] <= pd.to_datetime(end_date))]
+
+else:
+    st.sidebar.warning("'time' column not found in the selected dataset. No date filtering will be applied.")
+    filtered_gdf = gdf  # No date filtering if 'time' column is missing
 
 # Filter based on the selected dataset
 if selected_file == "Urban Density":
