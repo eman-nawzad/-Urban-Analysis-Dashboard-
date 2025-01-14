@@ -65,7 +65,7 @@ elif selected_file == "Roads":
         road_filter = st.sidebar.selectbox("Filter by Road Type", ["All"] + list(highway_types))
         if road_filter != "All":
             filtered_gdf = gdf[gdf['highway'] == road_filter]
-            
+
 # Sidebar warning message for no data
 if filtered_gdf.empty:
     st.sidebar.warning(f"No data available for the selected class in the '{selected_file}' dataset. Please try a different selection.")
@@ -103,6 +103,11 @@ folium.LayerControl().add_to(m)
 
 # Display the map
 st_folium(m, width=700, height=500)
+
+# Display the attribute table
+st.subheader(f"Attribute Table: {selected_file}")
+st.dataframe(filtered_gdf)
+
 
 
 
