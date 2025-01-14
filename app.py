@@ -2,6 +2,7 @@ import streamlit as st
 import folium
 from streamlit_folium import st_folium
 import geopandas as gpd
+import plotly.graph_objects as go
 
 # Define dataset paths
 data_files = {
@@ -104,9 +105,40 @@ folium.LayerControl().add_to(m)
 # Display the map
 st_folium(m, width=700, height=500)
 
-# Display the attribute table
+# Display the attribute table with tooltips
 st.subheader(f"Attribute Table: {selected_file}")
-st.dataframe(filtered_gdf)
+
+# Extract columns for display and tooltips based on selected dataset
+if selected_file == "Urban Density":
+    tooltip_column = "label"
+elif selected_file == "Land Use":
+    tooltip_column = "land_use"
+elif selected_file == "Roads":
+    tooltip_column = "highway"
+else:
+    tooltip_column = None
+
+# Prepare tooltip text if applicable
+if tooltip_column and tooltip_column in filtered_gdf.columns:
+    hover_texts = filtered_gdf.apply(lambda row: f"{tooltip_column}: {row[tooltip_column]}", axis=1)
+else:
+    hover_texts = ["No tooltip available"] * len(filtered_gdf)
+
+# Create Plotly table
+columns_to_display = list(filtered_gdf.columns)
+table = go.Figure(data=[go.Table(
+    header=dict(values=columns_to_display, fill_color='lightgrey', align='left'),
+    cells=dict(
+        values=[filtered_gdf[col] for col in columns_to_display],
+        fill_color='white',
+        align='left',
+        hoverinfo="text",
+        hovertext=hover_texts
+    )
+)])
+
+# Display the table
+st.plotly_chart(table)
 
 
 
