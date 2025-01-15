@@ -105,11 +105,15 @@ def get_style_function(dataset_name):
 
 # Add GeoJSON layer with popups
 def add_geojson_layer(gdf, map_obj, dataset_name):
+    geo_json = folium.GeoJson(
+        gdf.geometry,
+        style_function=get_style_function(dataset_name),
+        name=dataset_name  # Set the name for LayerControl
+    )
     for _, row in gdf.iterrows():
-        geo_json = folium.GeoJson(row['geometry'], style_function=get_style_function(dataset_name))
         popup = folium.Popup(generate_popup(row, dataset_name), max_width=300)
         geo_json.add_child(popup)
-        geo_json.add_to(map_obj)
+    geo_json.add_to(map_obj)
 
 # Add layers
 if show_all_layers:
