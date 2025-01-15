@@ -1,50 +1,81 @@
-# Urban Analysis Dashboard
+Urban Analysis Dashboard
 
-This is an interactive web dashboard for urban analysis, built using **Streamlit** and **Folium**. The dashboard allows users to visualize various urban-related data layers, including land use, local climate zones, vegetation distribution, roads, and urban density. Each layer can be toggled on/off, and custom colors and symbols are used for better understanding.
+Overview
 
-## Features
+The Urban Analysis Dashboard is a comprehensive web application designed to provide insights into urban environments through spatial analysis. It integrates data on local climate zones (LCZ), land use, vegetation indices, road networks, and urban density to support urban planning and decision-making.
 
-- **Land Use**: Visualizes different land use types, such as residential and commercial areas.
-- **Local Climate Zones (LCZ)**: Displays different climate zones, e.g., high-rise and low-rise zones.
-- **Vegetation Distribution**: Shows vegetation types like dense forest and grassland.
-- **Road Network**: Displays primary and secondary roads with color differentiation.
-- **Urban Density**: Visualizes urban density with color variations for different population density zones.
+Repository Structure
 
-## Requirements
+data/
+├── LCZ.geojson          # Local Climate Zones data
+├── Land_Use.geojson     # Land use data
+├── NDVIm.geojson        # Normalized Difference Vegetation Index (NDVI) data
+├── Roads.geojson        # Road network data
+├── UrbanDensity.geojson # Urban density data
+├── tst.txt              # Test or temporary file
+README.md               # Project documentation
+app.py                  # Main application script
+requirements.txt        # Python dependencies
 
-The project requires the following libraries:
+Features
 
-- **folium**: For creating interactive maps.
-- **streamlit**: For creating the web dashboard.
-- **geopandas**: For reading and processing GeoJSON data files.
+Local Climate Zones (LCZ) Analysis: Understand urban thermal environments and microclimates.
 
-You can install all required dependencies using the following command:
+Land Use Mapping: Analyze land use patterns and their impact on urban sustainability.
 
-```bash
+Vegetation Index Insights: Utilize NDVI data to assess vegetation health and distribution.
+
+Road Network Analysis: Examine road density and distribution for urban connectivity.
+
+Urban Density Visualization: Explore urbanization trends and population density.
+
+Installation
+
+Clone the repository:
+
+git clone https://github.com/eman-nawzad/urban-analysis.git
+cd urban-analysis
+
+Set up a virtual environment (optional but recommended):
+
+python -m venv venv
+source venv/bin/activate # On Windows, use venv\Scripts\activate
+
+Install the required dependencies:
+
 pip install -r requirements.txt
-git clone https://github.com/eman-nawzad/urban-analysis-dashboard.git
-cd urban-analysis-dashboard
-pip install -r requirements.txt
+
+Usage
+
+Run the application:
+
 streamlit run app.py
 
-Data
-This project uses GeoJSON data for various urban-related attributes. The following data files are included:
+Open the provided URL in your browser to access the dashboard.
 
-LCZ.GeoJson.geojson: Local Climate Zones data.
-Land_Use.geojson: Land Use data.
-NDVI-DS.geojson: Vegetation Distribution data.
-Roads.geojson: Road Network data.
-UrbanDensity.geojson: Urban Density data.
+Data Sources
+
+LCZ.geojson: Local Climate Zones from [Source/Provider].
+
+Land_Use.geojson: Land use data from [Source/Provider].
+
+NDVIm.geojson: Vegetation data based on satellite imagery.
+
+Roads.geojson: Road network data sourced from [Source/Provider].
+
+UrbanDensity.geojson: Urban density metrics from [Source/Provider].
+
+Contributing
+
+Contributions are welcome! Please follow these steps:
+
+Fork the repository.
+
+Create a new branch for your feature or bug fix.
+
+Submit a pull request with a detailed description of your changes.
+
 License
-This project is licensed under the MIT License - see the LICENSE file for details.
 
-markdown
-Copy code
-
-### Summary of Updates:
-
-1. **`requirements.txt`** includes `folium`, `streamlit`, and `geopandas` for the web and mapping features.
-2. **`README.md`** includes project description, features, installation instructions, data description, and usage steps.
-
-You can adjust the `README.md` to fit your project's specifics if needed! Let me know if you need any further assistance.
+This project is licensed under the MIT License.
 
