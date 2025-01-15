@@ -80,9 +80,12 @@ elif selected_file == "NDVI":
 elif selected_file == "Roads":
     if 'highway' in gdf.columns:
         highway_types = gdf['highway'].unique()
-        road_filter = st.sidebar.selectbox("Filter by Road Type",  list(highway_types))
-            filtered_gdf = gdf[gdf['highway'] == road_filter]
-            
+        road_filter = st.sidebar.selectbox("Filter by Road Type", list(highway_types))
+        filtered_gdf = gdf[gdf['highway'] == road_filter]
+    else:
+        st.warning("The selected dataset does not contain 'highway' information.")
+        filtered_gdf = gdf.copy()
+
 # Sidebar warning message for no data
 if filtered_gdf.empty:
     st.sidebar.warning(f"No data available for the selected class in the '{selected_file}' dataset. Please try a different selection.")
