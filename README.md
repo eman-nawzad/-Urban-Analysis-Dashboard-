@@ -27,6 +27,8 @@ requirements.txt        # Python dependencies
 
 
 
+
+
 Features
 
 Local Climate Zones (LCZ) Analysis: Understand urban thermal environments and microclimates.
@@ -38,6 +40,8 @@ Vegetation Index Insights: Utilize NDVI data to assess vegetation health and dis
 Road Network Analysis: Examine road density and distribution for urban connectivity.
 
 Urban Density Visualization: Explore urbanization trends and population density.
+
+
 
 Installation
 
@@ -55,6 +59,9 @@ Install the required dependencies:
 
 pip install -r requirements.txt
 
+
+
+
 Usage
 
 Run the application:
@@ -62,6 +69,9 @@ Run the application:
 streamlit run app.py
 
 Open the provided URL in your browser to access the dashboard.
+
+
+
 
 Data Sources
 
@@ -84,6 +94,9 @@ Fork the repository.
 Create a new branch for your feature or bug fix.
 
 Submit a pull request with a detailed description of your changes.
+
+
+
 
 License
 
