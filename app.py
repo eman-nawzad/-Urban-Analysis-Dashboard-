@@ -72,8 +72,6 @@ elif selected_file == "Land Use":
 
 elif selected_file == "NDVI":
     if 'label' in gdf.columns:
-        st.write("Attribute Table of NDVI dataset:")
-        st.write(gdf)  # Display the entire table
         ndvi_filter = st.sidebar.selectbox("Filter by NDVI Class", ["All"] + list(ndvi_classes.values()))
         if ndvi_filter != "All":
             class_value = list(ndvi_classes.values()).index(ndvi_filter) + 1  # Mapping to numeric values
