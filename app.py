@@ -8,7 +8,7 @@ data_files = {
     "Urban Density": "data/UrbanDensity.geojson",
     "LCZ": "data/LCZ.geojson",
     "Land Use": "data/Land_Use.geojson",
-    "NDVI": "data/NDVIm.geojson",
+    "NDVI": "data/NDVI.geojson",  # Ensure the correct NDVI GeoJSON path
     "Roads": "data/Roads.geojson"
 }
 
@@ -30,6 +30,12 @@ lcz_classes = {
     1: "Compact High-Rise",
     6: "Open Low-Rise",
     8: "Industrial Zones"
+}
+
+# NDVI Classes
+ndvi_classes = {
+    1: "Dense Forest ",
+    2: "Sparse Grass "
 }
 
 # Sidebar
@@ -68,10 +74,10 @@ elif selected_file == "NDVI":
     if 'label' in gdf.columns:
         st.write("Attribute Table of NDVI dataset:")
         st.write(gdf)  # Display the entire table
-        unique_labels = gdf['label'].unique()
-        ndvi_filter = st.sidebar.selectbox("Filter by NDVI Class", ["All"] + list(unique_labels))
+        ndvi_filter = st.sidebar.selectbox("Filter by NDVI Class", ["All"] + list(ndvi_classes.values()))
         if ndvi_filter != "All":
-            filtered_gdf = gdf[gdf['label'] == ndvi_filter]
+            class_value = list(ndvi_classes.values()).index(ndvi_filter) + 1  # Mapping to numeric values
+            filtered_gdf = gdf[gdf['label'] == class_value]
 
 elif selected_file == "Roads":
     if 'highway' in gdf.columns:
@@ -104,6 +110,9 @@ def generate_popup(row, dataset_name):
     elif dataset_name == "LCZ":
         lcz_class = lcz_classes.get(row['LCZ_Filter'], "Unknown")
         popup_content += f"<b>LCZ Class:</b> {lcz_class}<br>"
+    elif dataset_name == "NDVI":
+        ndvi_class = ndvi_classes.get(row['label'], "Unknown")
+        popup_content += f"<b>NDVI Class:</b> {ndvi_class}<br>"
     return popup_content
 
 # Function to get styling based on dataset
@@ -137,6 +146,7 @@ folium.LayerControl().add_to(m)
 
 # Display the map
 st_folium(m, width=700, height=500)
+
 
 
 
