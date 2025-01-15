@@ -108,16 +108,7 @@ Roads.geojson: Road network data sourced from [Source/Provider].
 
 UrbanDensity.geojson: Urban density metrics from [Source/Provider].
 
-C
-
-
-
-
-
-
-
-
-ontributing
+Contributing
 
 Contributions are welcome! Please follow these steps:
 
