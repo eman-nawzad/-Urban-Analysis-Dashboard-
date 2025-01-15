@@ -80,8 +80,7 @@ elif selected_file == "NDVI":
 elif selected_file == "Roads":
     if 'highway' in gdf.columns:
         highway_types = gdf['highway'].unique()
-        road_filter = st.sidebar.selectbox("Filter by Road Type", ["All"] + list(highway_types))
-        if road_filter != "All":
+        road_filter = st.sidebar.selectbox("Filter by Road Type",  list(highway_types))
             filtered_gdf = gdf[gdf['highway'] == road_filter]
             
 # Sidebar warning message for no data
@@ -113,12 +112,14 @@ def generate_popup(row, dataset_name):
         popup_content += f"<b>NDVI Class:</b> {ndvi_class}<br>"
     return popup_content
 
-# Function to get styling based on dataset
 def get_style_function(dataset_name):
     if dataset_name == "Roads":
         return lambda x: {"color": "red", "weight": 3}  # Roads in red
+    elif dataset_name == "NDVI":
+        return lambda x: {"color": "green", "weight": 2}  # NDVI in green
     else:
         return lambda x: {"color": "blue", "weight": 1}  # Default styling
+
 
 # Add GeoJSON layer with popups
 def add_geojson_layer(gdf, map_obj, dataset_name):
