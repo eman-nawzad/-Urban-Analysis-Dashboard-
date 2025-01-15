@@ -66,6 +66,8 @@ elif selected_file == "Land Use":
 
 elif selected_file == "NDVI":
     if 'label' in gdf.columns:
+        st.write("Attribute Table of NDVI dataset:")
+        st.write(gdf)  # Display the entire table
         unique_labels = gdf['label'].unique()
         ndvi_filter = st.sidebar.selectbox("Filter by NDVI Class", ["All"] + list(unique_labels))
         if ndvi_filter != "All":
@@ -135,6 +137,7 @@ folium.LayerControl().add_to(m)
 
 # Display the map
 st_folium(m, width=700, height=500)
+
 
 
 
