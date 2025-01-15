@@ -12,20 +12,6 @@ data_files = {
     "Roads": "data/Roads.geojson"
 }
 
-# Define the classes for each dataset
-density_classes = {
-    1: "Very Low Density (<10%)",
-    2: "Low Density (10–30%)",
-    3: "Medium Density (30–70%)",
-    4: "High Density (>70%)"
-}
-
-land_use_classes = {
-    3: "Croplands",
-    4: "Urban",
-    6: "Barren"
-}
-
 # Sidebar
 st.sidebar.title("Dataset Viewer")
 show_all_layers = st.sidebar.checkbox("Show All Layers")
@@ -37,11 +23,17 @@ gdf = gpd.read_file(data_files[selected_file])
 # Filter the dataset based on user input
 filtered_gdf = gdf.copy()
 if selected_file == "Urban Density":
+    density_classes = {
+        "Very Low Density (<10%)": 1,
+        "Low Density (10–30%)": 2,
+        "Medium Density (30–70%)": 3,
+        "High Density (>70%)": 4
+    }
     density_filter = st.sidebar.selectbox(
-        "Filter by Urban Density Class", ["All"] + list(density_classes.values())
+        "Filter by Urban Density Class", ["All"] + list(density_classes.keys())
     )
     if density_filter != "All":
-        class_value = list(density_classes.values()).index(density_filter) + 1  # Mapping to numeric values
+        class_value = density_classes[density_filter]
         filtered_gdf = gdf[gdf['label'] == class_value]
 
 elif selected_file == "LCZ":
@@ -52,6 +44,7 @@ elif selected_file == "LCZ":
         filtered_gdf = gdf[gdf['LCZ_Filter'] == class_value]
 
 elif selected_file == "Land Use":
+    land_use_classes = {3: "Croplands", 4: "Urban", 6: "Barren"}
     land_use_filter = st.sidebar.selectbox(
         "Filter by Land Use Class", ["All"] + list(land_use_classes.values())
     )
@@ -82,40 +75,37 @@ else:
 # Create map
 m = folium.Map(location=[filtered_gdf.geometry.centroid.y.mean(), filtered_gdf.geometry.centroid.x.mean()], zoom_start=12)
 
-# Function to generate popups with class names instead of raw values
-def generate_popup(row, dataset_name):
-    popup_content = f"<strong>Feature Information</strong><br>"
-    if dataset_name == "Urban Density":
-        density_class = density_classes.get(row['label'], "Unknown")
-        popup_content += f"<b>Urban Density:</b> {density_class}<br>"
-    elif dataset_name == "Land Use":
-        land_use_class = land_use_classes.get(row['land_use'], "Unknown")
-        popup_content += f"<b>Land Use:</b> {land_use_class}<br>"
-    elif dataset_name == "Roads":
-        road_type = row.get('highway', "Unknown")
-        popup_content += f"<b>Road Type:</b> {road_type}<br>"
-    return popup_content
-
-# Add GeoJSON layer with popups
-def add_geojson_layer(gdf, map_obj, dataset_name):
-    for _, row in gdf.iterrows():
-        geo_json = folium.GeoJson(row['geometry'])
-        popup = folium.Popup(generate_popup(row, dataset_name), max_width=300)
-        geo_json.add_child(popup)
-        geo_json.add_to(map_obj)
-
 # Add layers
+def get_style_function(dataset_name):
+    if dataset_name == "NDVI":
+        return lambda x: {"color": "green", "weight": 1}
+    elif dataset_name == "Roads":
+        return lambda x: {"color": "red", "weight": 1}  # Make roads red
+    else:
+        return lambda x: {"color": "blue", "weight": 1}
+
 if show_all_layers:
     for file_name, file_path in data_files.items():
         layer_gdf = gpd.read_file(file_path)
-        add_geojson_layer(layer_gdf, m, file_name)
+        folium.GeoJson(
+            layer_gdf,
+            name=file_name,
+            style_function=get_style_function(file_name),
+            tooltip=folium.features.GeoJsonTooltip(fields=layer_gdf.columns, aliases=layer_gdf.columns)
+        ).add_to(m)
 else:
-    add_geojson_layer(filtered_gdf, m, selected_file)
+    folium.GeoJson(
+        filtered_gdf,
+        name=selected_file,
+        style_function=get_style_function(selected_file),
+        tooltip=folium.features.GeoJsonTooltip(fields=filtered_gdf.columns, aliases=filtered_gdf.columns)
+    ).add_to(m)
 
 folium.LayerControl().add_to(m)
 
 # Display the map
 st_folium(m, width=700, height=500)
+
 
 
 
