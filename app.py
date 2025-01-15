@@ -26,6 +26,12 @@ land_use_classes = {
     6: "Barren"
 }
 
+lcz_classes = {
+    1: "Compact High-Rise",
+    6: "Open Low-Rise",
+    8: "Industrial Zones"
+}
+
 # Sidebar
 st.sidebar.title("Dataset Viewer")
 show_all_layers = st.sidebar.checkbox("Show All Layers")
@@ -45,10 +51,9 @@ if selected_file == "Urban Density":
         filtered_gdf = gdf[gdf['label'] == class_value]
 
 elif selected_file == "LCZ":
-    lcz_classes = {"Compact High-Rise": 1, "Open Low-Rise": 6, "Industrial Zones": 8}
-    lcz_filter = st.sidebar.selectbox("Filter by LCZ Class", ["All"] + list(lcz_classes.keys()))
+    lcz_filter = st.sidebar.selectbox("Filter by LCZ Class", ["All"] + list(lcz_classes.values()))
     if lcz_filter != "All":
-        class_value = lcz_classes[lcz_filter]
+        class_value = [key for key, value in lcz_classes.items() if value == lcz_filter][0]
         filtered_gdf = gdf[gdf['LCZ_Filter'] == class_value]
 
 elif selected_file == "Land Use":
@@ -94,6 +99,9 @@ def generate_popup(row, dataset_name):
     elif dataset_name == "Roads":
         road_type = row.get('highway', "Unknown")
         popup_content += f"<b>Road Type:</b> {road_type}<br>"
+    elif dataset_name == "LCZ":
+        lcz_class = lcz_classes.get(row['LCZ_Filter'], "Unknown")
+        popup_content += f"<b>LCZ Class:</b> {lcz_class}<br>"
     return popup_content
 
 # Function to get styling based on dataset
