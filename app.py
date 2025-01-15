@@ -6,7 +6,7 @@ import geopandas as gpd
 # Define dataset paths
 data_files = {
     "Urban Density": "data/UrbanDensity.geojson",
-    "LCZ": "data/LCZ_Zones.geojson",
+    "LCZ": "data/LCZ.geojson",
     "Land Use": "data/Land_Use.geojson",
     "NDVI": "data/NDVIm.geojson",
     "Roads": "data/Roads.geojson"
