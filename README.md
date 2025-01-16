@@ -10,12 +10,19 @@ Repository Structure
 
 data/
 ├── LCZ.geojson          # Local Climate Zones data
+
 ├── Land_Use.geojson     # Land use data
+
 ├── NDVIm.geojson        # Normalized Difference Vegetation Index (NDVI) data
+
 ├── Roads.geojson        # Road network data
+
 ├── UrbanDensity.geojson # Urban density data
+
 README.md                # Project documentation
+
 app.py                   # Main application script
+
 requirements.txt         # Python dependencies
 
 
