@@ -3,6 +3,10 @@ import folium
 from streamlit_folium import st_folium
 import geopandas as gpd
 
+# Add title to the app
+st.title("Interactive Urban Analysis Dashboard")
+
+
 # Define dataset paths
 data_files = {
     "Urban Density": "data/UrbanDensity.geojson",
