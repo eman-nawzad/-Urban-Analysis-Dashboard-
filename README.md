@@ -1,4 +1,6 @@
 Urban Analysis Dashboard
+
+
 Overview
 The Urban Analysis Dashboard is a comprehensive web application designed to provide insights into urban environments through spatial analysis. It integrates data on local climate zones (LCZ), land use, vegetation indices, road networks, and urban density to support urban planning and decision-making.
 
