@@ -9,6 +9,7 @@ The Urban Analysis Dashboard is a comprehensive web application designed to prov
 Repository Structure
 
 data/
+
 ├── LCZ.geojson          # Local Climate Zones data
 
 ├── Land_Use.geojson     # Land use data
