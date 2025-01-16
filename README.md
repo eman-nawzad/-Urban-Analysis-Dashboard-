@@ -5,6 +5,7 @@ Overview
 The Urban Analysis Dashboard is a comprehensive web application designed to provide insights into urban environments through spatial analysis. It integrates data on local climate zones (LCZ), land use, vegetation indices, road networks, and urban density to support urban planning and decision-making.
 
 
+--------------------------------------------------------------
 
 Repository Structure
 
@@ -20,6 +21,8 @@ data/
 
 ├── UrbanDensity.geojson # Urban density data
 
+--------------------------------------------------------------
+
 README.md                # Project documentation
 
 app.py                   # Main application script
@@ -31,7 +34,7 @@ requirements.txt         # Python dependencies
 
 
 
-
+--------------------------------------------------------------
 
 Features
 
@@ -59,7 +62,7 @@ Explore urbanization trends and population density.
 
 
 
-
+----------------------------------------------------------------------
 
 Installation
 Clone the repository
@@ -76,14 +79,20 @@ Open the provided URL in your browser to start exploring urban data.
 
 
 
+-----------------------------------------------------------------------
+
 Data Sources
 LCZ.geojson: Local Climate Zones from [Source/Provider].
+
 Land_Use.geojson: Land use data from [Source/Provider].
+
 NDVIm.geojson: Vegetation data based on satellite imagery.
+
 Roads.geojson: Road network data sourced from [Source/Provider].
+
 UrbanDensity.geojson: Urban density metrics from [Source/Provider].
 
-
+-----------------------------------------------------------------------
 License
 This project is licensed under the MIT License.
 
