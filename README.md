@@ -29,21 +29,32 @@ requirements.txt         # Python dependencies
 
 
 
+
+
+
+
 Features
+
 1.Local Climate Zones (LCZ) Analysis
 Gain insights into urban thermal environments and microclimates.
+
 
 2.Land Use Mapping
 Analyze land use patterns and their impact on urban sustainability.
 
+
 3.Vegetation Index Insights
 Utilize NDVI data to assess vegetation health and distribution.
+
 
 4.Road Network Analysis
 Examine road density and distribution for urban connectivity.
 
+
 5.Urban Density Visualization
 Explore urbanization trends and population density.
+
+
 
 
 
